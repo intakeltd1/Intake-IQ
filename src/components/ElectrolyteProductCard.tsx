@@ -190,8 +190,15 @@ export function ElectrolyteProductCard({
       } flex flex-col relative overflow-hidden rounded-lg`}
       onClick={handleCardClick}
     >
-      {/* Product Image - Fixed height percentage for consistent card sizing across all products */}
-      <div className="relative w-full h-[50%] overflow-hidden rounded-t-lg bg-white flex-shrink-0">
+      {/* 
+        SUSTAINABLE CARD LAYOUT:
+        - Image: min-h-[40%] max-h-[45%] allows flexibility (electrolytes have more content)
+        - Content: flex-1 takes remaining space with priority system
+        - Critical elements use flex-shrink-0 to never shrink
+        - Intake Value is anchored to bottom with mt-auto
+      */}
+      {/* Product Image - Flexible height with min/max bounds for content balance */}
+      <div className="relative w-full min-h-[40%] max-h-[45%] overflow-hidden rounded-t-lg bg-white flex-shrink-0">
         {currentProduct.IMAGE_URL && !imageError ? (
           <img
             src={currentProduct.IMAGE_URL}
@@ -261,21 +268,21 @@ export function ElectrolyteProductCard({
         </Button>
       </div>
 
-      {/* Product Info - fixed height content area, overflow hidden to prevent layout breaking */}
-      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col gap-0.5 sm:gap-1 overflow-hidden">
-        {/* Brand Name */}
-        <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+      {/* Product Info - flex-1 takes remaining space, min-h-0 allows proper flex behavior */}
+      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col gap-0.5 sm:gap-1 flex-1 min-h-0">
+        {/* Brand Name - flex-shrink-0 ensures it never shrinks */}
+        <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate flex-shrink-0">
           {getBrandFromProduct(currentProduct)}
         </p>
 
-        {/* Product Title */}
-        <CardTitle className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight">
+        {/* Product Title - flex-shrink-0 ensures it never shrinks */}
+        <CardTitle className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0">
           {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
         </CardTitle>
 
         {/* Flavour Section - with dropdown for variants */}
         <div 
-          className="relative z-[150]" 
+          className="relative z-[150] flex-shrink-0" 
           onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
           onTouchStart={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}
@@ -328,8 +335,8 @@ export function ElectrolyteProductCard({
           )}
         </div>
 
-        {/* Price and Servings */}
-        <div className="flex items-center justify-between">
+        {/* Price and Servings - flex-shrink-0 */}
+        <div className="flex items-center justify-between flex-shrink-0">
           <div className="flex flex-col">
             {currentProduct.RRP_NUM && discountPercent && discountPercent > 0 && (
               <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
@@ -354,7 +361,7 @@ export function ElectrolyteProductCard({
 
         {/* Subscription Amount - highlighted when subscription mode is active */}
         {isSubscription && currentProduct.SUB_AMOUNT && (
-          <div className="flex items-center gap-1 bg-primary/20 rounded px-1.5 py-1 border border-primary/30">
+          <div className="flex items-center gap-1 bg-primary/20 rounded px-1.5 py-1 border border-primary/30 flex-shrink-0">
             <Zap className="h-3 w-3 text-primary" />
             <span className="text-[10px] sm:text-[11px] font-semibold text-primary">
               {currentProduct.SUB_AMOUNT}
@@ -362,31 +369,31 @@ export function ElectrolyteProductCard({
           </div>
         )}
 
-        {/* Electrolyte Breakdown */}
-        <div className="grid grid-cols-3 gap-1 pt-1 border-t border-border/30">
+        {/* Electrolyte Breakdown - flex-shrink-0 */}
+        <div className="grid grid-cols-3 gap-1 pt-1 border-t border-border/30 flex-shrink-0">
           <div className="text-center">
-            <p className="text-[7px] sm:text-[8px] text-muted-foreground">Sodium</p>
+            <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Sodium</p>
             <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
               {currentProduct.SODIUM_MG ? `${Math.round(currentProduct.SODIUM_MG)}mg` : 'N/A'}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-[7px] sm:text-[8px] text-muted-foreground">Potassium</p>
+            <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Potassium</p>
             <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
               {currentProduct.POTASSIUM_MG ? `${Math.round(currentProduct.POTASSIUM_MG)}mg` : 'N/A'}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-[7px] sm:text-[8px] text-muted-foreground">Magnesium</p>
+            <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Magnesium</p>
             <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
               {currentProduct.MAGNESIUM_MG ? `${Math.round(currentProduct.MAGNESIUM_MG)}mg` : 'N/A'}
             </p>
           </div>
         </div>
 
-        {/* Total Electrolytes Badge */}
+        {/* Total Electrolytes Badge - flex-shrink-0 */}
         {totalElectrolytes > 0 && (
-          <div className="flex items-center justify-center gap-1 bg-blue-500/10 rounded px-1.5 py-0.5">
+          <div className="flex items-center justify-center gap-1 bg-blue-500/10 rounded px-1.5 py-0.5 flex-shrink-0">
             <Droplets className="h-2.5 w-2.5 text-blue-500" />
             <span className="text-[8px] sm:text-[9px] font-medium text-blue-600">
               {Math.round(totalElectrolytes)}mg total electrolytes
@@ -394,9 +401,12 @@ export function ElectrolyteProductCard({
           </div>
         )}
 
-        {/* Intake Value Bar */}
+        {/* Spacer - pushes Intake Value to bottom */}
+        <div className="flex-1 min-h-0" />
+
+        {/* Intake Value Bar - Always at bottom with mt-auto and flex-shrink-0 */}
         {valueRating && !outOfStock && (
-          <div className="pt-1 border-t border-border/30">
+          <div className="pt-1 border-t border-border/30 flex-shrink-0 mt-auto">
             <div className="flex items-center justify-between">
               <span className="text-[7px] sm:text-[8px] font-heading font-medium text-muted-foreground uppercase tracking-wider">
                 Intake Value
