@@ -357,40 +357,42 @@ export default function Electrolytes() {
                 {/* Divider */}
                 <div className="hidden sm:block w-px h-6 bg-white/30" />
 
-                {/* Sort Dropdown */}
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="bg-background/20 border-white/30 text-foreground focus:bg-background/30 focus:border-white/50 h-8 text-xs w-full sm:w-[160px]">
-                    <div className="flex items-center gap-1 truncate">
-                      <SortDesc className="h-3 w-3 shrink-0 text-white/70" />
-                      <SelectValue placeholder="Sort by" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border shadow-lg z-50">
-                    <SelectItem value="value">Best Value</SelectItem>
-                    <SelectItem value="price_low">Price: Low to High</SelectItem>
-                    <SelectItem value="sodium">Sodium per Serving</SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Sort Dropdown and Reset */}
+                <div className="flex items-center gap-2">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="bg-background/20 border-white/30 text-foreground focus:bg-background/30 focus:border-white/50 h-8 text-xs w-full sm:w-[160px]">
+                      <div className="flex items-center gap-1 truncate">
+                        <SortDesc className="h-3 w-3 shrink-0 text-white/70" />
+                        <SelectValue placeholder="Sort by" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border shadow-lg z-50">
+                      <SelectItem value="value">Best Value</SelectItem>
+                      <SelectItem value="price_low">Price: Low to High</SelectItem>
+                      <SelectItem value="sodium">Sodium per Serving</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {hasSearchCriteria && (
+                    <button
+                      onClick={handleReset}
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-md bg-primary/20 hover:bg-primary/30 text-primary transition-colors text-xs font-medium whitespace-nowrap h-8"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      Reset
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Search */}
-              <div className="relative flex items-center gap-2">
+              <div className="relative">
                 <Input
                   type="text"
                   placeholder="Search electrolyte supplements..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="bg-background/20 border-white/30 text-foreground placeholder:text-white/70 focus:bg-background/30 focus:border-white/50 h-7 text-xs flex-1"
+                  className="bg-background/20 border-white/30 text-foreground placeholder:text-white/70 focus:bg-background/30 focus:border-white/50 h-7 text-xs"
                 />
-                {hasSearchCriteria && (
-                  <button
-                    onClick={handleReset}
-                    className="flex items-center gap-1 px-2 py-1.5 rounded-md bg-primary/20 hover:bg-primary/30 text-primary transition-colors text-xs font-medium whitespace-nowrap"
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                    Reset
-                  </button>
-                )}
               </div>
 
               {/* Results Count */}
