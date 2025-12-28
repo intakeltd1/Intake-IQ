@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Info } from "lucide-react";
@@ -548,11 +549,13 @@ useEffect(() => {
                   
                   {/* Main content - truly centered against full page width */}
                   <div className="text-center space-y-2 md:space-y-3 px-8 md:px-0">
-                    <img 
-                      src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
-                      alt="Intake Logo" 
-                      className="h-5 md:h-8 mx-auto filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)]"
-                    />
+                    <Link to="/">
+                      <img 
+                        src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
+                        alt="Intake Logo" 
+                        className="h-5 md:h-8 mx-auto filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)] cursor-pointer hover:opacity-80 transition-opacity"
+                      />
+                    </Link>
                     <p className="text-xs md:text-base text-foreground/90 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)] leading-tight">
                       Find your next favourite supplement at the best possible price - updated daily.
                     </p>
