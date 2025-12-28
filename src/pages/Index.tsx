@@ -539,8 +539,8 @@ useEffect(() => {
         {/* Combined Header and Search - Single Integrated Box */}
         <div className="relative z-10 transition-all duration-1000 delay-1000 pt-8 md:pt-10 fade-in-up">
           <div className="container mx-auto px-2 md:px-4">
-            {/* Browser-style Tabs */}
-            <div className="flex justify-center mb-0">
+          {/* Browser-style Tabs */}
+            <div className="flex w-full mb-0">
               <CategoryTabs />
             </div>
             
