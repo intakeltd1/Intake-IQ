@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { FavoritesProvider } from "@/hooks/useFavorites";
+import { GlobalNavigation } from "@/components/GlobalNavigation";
 import LandingPage from "./pages/LandingPage";
 import Index from "./pages/Index";
 import Electrolytes from "./pages/Electrolytes";
@@ -23,6 +24,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <GlobalNavigation />
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/protein" element={<Index />} />
