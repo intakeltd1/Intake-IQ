@@ -172,7 +172,21 @@ All colors MUST be HSL.
   animation: fadeInUp 0.8s ease-out forwards;
 }
 
-/* Simplified video background with higher opacity */
+/* Page transition animation */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page-transition {
+  animation: pageEnter 0.3s ease-out;
+}
+
+/* Video background with seamless loop fade */
 .video-background {
   position: fixed;
   top: 0;
@@ -184,6 +198,24 @@ All colors MUST be HSL.
   pointer-events: none;
   opacity: 0.6;
   will-change: auto;
+}
+
+/* Video fade overlay for seamless looping */
+.video-fade-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 85%,
+    hsl(var(--background) / 0.3) 95%,
+    hsl(var(--background) / 0.5) 100%
+  );
 }
 
 /* Simplified featured products container - more transparent */

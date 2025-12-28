@@ -492,25 +492,8 @@ useEffect(() => {
   return (
     <ComparisonProvider>
       <ValueBenchmarksProvider benchmarks={benchmarks} scoreRange={scoreRange} rankings={rankings}>
-      <div className="min-h-screen relative">
-        {/* Video Background with optimized loading */}
-        <video 
-          autoPlay 
-          muted 
-          loop 
-          playsInline
-          className="video-background"
-          preload="metadata"
-        >
-          <source src="/background-video.mp4" type="video/mp4" />
-        </video>
-        
-        {/* Sticky Timer - Always at top */}
-        <div className="fixed top-0 left-0 right-0 z-50">
-          <StickyTimer lastUpdatedISO={lastUpdatedAt || undefined} />
-        </div>
-
-        {/* Background video for main view */}
+      <div className="min-h-screen relative page-transition">
+        {/* Video Background with seamless loop */}
         <video
           ref={videoRef}
           autoPlay
@@ -535,6 +518,14 @@ useEffect(() => {
         >
           <source src="/background-video.mp4" type="video/mp4" />
         </video>
+        
+        {/* Video fade overlay for seamless looping */}
+        <div className="video-fade-overlay" aria-hidden="true" />
+        
+        {/* Sticky Timer - Always at top */}
+        <div className="fixed top-0 left-0 right-0 z-50">
+          <StickyTimer lastUpdatedISO={lastUpdatedAt || undefined} />
+        </div>
 
         {/* Combined Header and Search - Single Integrated Box */}
         <div className="relative z-10 transition-all duration-1000 delay-1000 pt-8 md:pt-10 fade-in-up">

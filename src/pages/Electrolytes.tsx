@@ -280,7 +280,7 @@ export default function Electrolytes() {
 
   return (
     <ElectrolyteComparisonProvider>
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative page-transition">
       {/* Video Background */}
       <video 
         ref={videoRef}
@@ -289,6 +289,9 @@ export default function Electrolytes() {
       >
         <source src="/background-video.mp4" type="video/mp4" />
       </video>
+      
+      {/* Video fade overlay for seamless looping */}
+      <div className="video-fade-overlay" aria-hidden="true" />
 
       {/* Header */}
       <div className="relative z-10 pt-8 md:pt-10 transition-all duration-1000 delay-1000 fade-in-up">

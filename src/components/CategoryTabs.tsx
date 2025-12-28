@@ -13,29 +13,26 @@ const Tab = ({ to, label, icon, isActive }: TabProps) => (
   <Link
     to={to}
     className={cn(
-      "flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-300 rounded-t-xl border-t-2 border-l border-r",
-      "min-h-[48px] text-center relative",
+      "flex-1 flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-200",
+      "relative",
       isActive
-        ? "bg-background/25 backdrop-blur-md border-t-primary border-l-white/40 border-r-white/40 text-foreground shadow-[0_-4px_20px_rgba(255,255,255,0.15)]"
-        : "bg-background/5 border-t-transparent border-l-white/10 border-r-white/10 text-foreground/50 hover:text-foreground/80 hover:bg-background/15 hover:border-l-white/20 hover:border-r-white/20"
+        ? "text-foreground"
+        : "text-foreground/40 hover:text-foreground/70"
     )}
-    style={{
-      // Create the "connected to content" effect for active tab
-      marginBottom: isActive ? "-1px" : "0",
-    }}
   >
     <span className={cn(
-      "transition-transform duration-300",
-      isActive ? "scale-110" : "scale-100"
+      "transition-opacity duration-200",
+      isActive ? "opacity-100" : "opacity-50"
     )}>
       {icon}
     </span>
-    <span className={cn(
-      "font-semibold tracking-wide",
-      isActive ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" : ""
-    )}>
+    <span className="font-medium">
       {label}
     </span>
+    {/* Active indicator line */}
+    {isActive && (
+      <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-white rounded-full" />
+    )}
   </Link>
 );
 
@@ -47,7 +44,7 @@ const CategoryTabs = () => {
   const isElectrolytesActive = currentPath === "/electrolytes";
 
   return (
-    <div className="flex w-full gap-1">
+    <div className="flex w-full bg-background/10 backdrop-blur-sm rounded-t-lg border-b border-white/10">
       <Tab
         to="/protein"
         label="Protein"
