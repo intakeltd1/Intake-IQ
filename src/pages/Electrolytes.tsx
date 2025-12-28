@@ -13,6 +13,8 @@ import { ElectrolyteProductCard } from "@/components/ElectrolyteProductCard";
 import { ElectrolyteComparisonWidget } from "@/components/ElectrolyteComparisonWidget";
 import { ElectrolyteComparisonModal } from "@/components/ElectrolyteComparisonModal";
 import { ElectrolyteComparisonProvider } from "@/hooks/useElectrolyteComparison";
+import { PageLoading } from "@/components/PageLoading";
+import { VideoBackground } from "@/components/VideoBackground";
 import { filterByValidFlavor, countInvalidFlavors } from "@/utils/flavorFilter";
 import {
   ElectrolyteProduct,
@@ -52,7 +54,6 @@ export default function Electrolytes() {
   };
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const isLoadingRef = useRef(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Fetch products from JSON
   useEffect(() => {
@@ -229,37 +230,13 @@ export default function Electrolytes() {
     setDisplayedCount(28);
   }, [debouncedQuery, isSubscription, sortBy]);
 
-  // Ensure video autoplay
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = true;
-    v.play().catch(() => {});
-  }, [loading]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background relative overflow-hidden">
-        <video 
-          ref={videoRef}
-          autoPlay muted playsInline loop
-          className="video-background"
-        >
-          <source src="/background-video.mp4" type="video/mp4" />
-        </video>
-        
-        <div className="relative z-10 flex items-center justify-center min-h-screen">
-          <div className="text-center space-y-6 animate-fade-in">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto"></div>
-            <div className="space-y-2">
-              <p className="text-xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">Loading Electrolytes...</p>
-              <p className="text-sm text-foreground/80 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
-                Fetching the latest electrolyte supplement prices
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageLoading 
+        message="Loading Electrolytes..." 
+        subtitle="Fetching the latest electrolyte supplement prices"
+      />
     );
   }
 
@@ -281,17 +258,8 @@ export default function Electrolytes() {
   return (
     <ElectrolyteComparisonProvider>
     <div className="min-h-screen relative page-transition">
-      {/* Video Background */}
-      <video 
-        ref={videoRef}
-        autoPlay muted loop playsInline
-        className="video-background"
-      >
-        <source src="/background-video.mp4" type="video/mp4" />
-      </video>
-      
-      {/* Video fade overlay for seamless looping */}
-      <div className="video-fade-overlay" aria-hidden="true" />
+      {/* Video Background with crossfade */}
+      <VideoBackground />
 
       {/* Header */}
       <div className="relative z-10 pt-8 md:pt-10 transition-all duration-1000 delay-1000 fade-in-up">
