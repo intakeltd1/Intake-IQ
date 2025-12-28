@@ -41,6 +41,72 @@ const LandingPage = () => {
       {/* Overlay */}
       <div className="fixed inset-0 bg-gradient-to-b from-background/80 via-background/70 to-background z-[1]" />
 
+      {/* Floating Accent Orbs */}
+      <div className="fixed inset-0 z-[2] pointer-events-none overflow-hidden">
+        {/* Large primary orb - top right */}
+        <motion.div
+          className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/20 blur-3xl"
+          animate={{
+            x: [0, 30, 0],
+            y: [0, 20, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        
+        {/* Medium accent orb - left side */}
+        <motion.div
+          className="absolute top-1/3 -left-24 w-72 h-72 rounded-full bg-primary/15 blur-3xl"
+          animate={{
+            x: [0, 20, 0],
+            y: [0, -30, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+        />
+        
+        {/* Small orb - bottom right */}
+        <motion.div
+          className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-primary/25 blur-2xl"
+          animate={{
+            x: [0, -20, 0],
+            y: [0, 25, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2,
+          }}
+        />
+        
+        {/* Subtle orb - center bottom */}
+        <motion.div
+          className="absolute -bottom-20 left-1/3 w-64 h-64 rounded-full bg-primary/10 blur-3xl"
+          animate={{
+            x: [0, 15, 0],
+            y: [0, -15, 0],
+            scale: [1, 1.05, 1],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.5,
+          }}
+        />
+      </div>
+
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
