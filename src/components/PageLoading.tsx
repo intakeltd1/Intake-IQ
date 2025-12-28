@@ -30,13 +30,13 @@ export const PageLoading = ({
         preload="metadata"
         disablePictureInPicture
         aria-hidden="true"
-        className="video-background video-crossfade"
+        className="video-background"
       >
         <source src="/background-video.mp4" type="video/mp4" />
       </video>
       
-      {/* Video fade overlay */}
-      <div className="video-fade-overlay" aria-hidden="true" />
+      {/* Vignette overlay */}
+      <div className="video-vignette" aria-hidden="true" />
       
       <div className="relative z-10 flex items-center justify-center min-h-screen">
         <div className="text-center space-y-6 animate-fade-in">
