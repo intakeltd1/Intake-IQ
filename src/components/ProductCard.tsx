@@ -385,31 +385,31 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
             )}
           </div>
 
-          {/* Price and Servings/Amount - flex-shrink-0 */}
-          <div className="flex items-center justify-between flex-shrink-0">
-            <div className="flex flex-col">
-              {currentProduct.RRP && currentProduct.RRP !== currentProduct.PRICE && (
-                <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
-                  was {safeDisplayValue(currentProduct.RRP)}
+          {/* Price Row with Protein Chip - flex-shrink-0 */}
+          <div className="flex items-center justify-between gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex flex-col flex-shrink-0">
+                {currentProduct.RRP && currentProduct.RRP !== currentProduct.PRICE && (
+                  <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
+                    was {safeDisplayValue(currentProduct.RRP)}
+                  </span>
+                )}
+                <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
+                  {safeDisplayValue(currentProduct.PRICE, "Price N/A")}
                 </span>
+              </div>
+              {/* Protein Chip - inline with price */}
+              {formatProtein(currentProduct.PROTEIN_SERVING) !== 'N/A' && (
+                <Badge className="bg-primary/10 text-primary border border-primary/20 text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0 font-semibold whitespace-nowrap flex-shrink-0">
+                  {formatProtein(currentProduct.PROTEIN_SERVING)}
+                </Badge>
               )}
-              <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
-                {safeDisplayValue(currentProduct.PRICE, "Price N/A")}
-              </span>
             </div>
             {getServingsOrAmountDisplay(currentProduct) && (
-              <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium">
+              <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium flex-shrink-0">
                 {getServingsOrAmountDisplay(currentProduct)}
               </Badge>
             )}
-          </div>
-
-          {/* Protein per Serving - flex-shrink-0 */}
-          <div className="flex justify-between items-center flex-shrink-0">
-            <span className="text-muted-foreground text-[9px] sm:text-[10px] truncate">Protein/Serving</span>
-            <span className="font-semibold text-foreground tabular-nums text-[10px] sm:text-[11px]">
-              {formatProtein(currentProduct.PROTEIN_SERVING)}
-            </span>
           </div>
         </div>
 
