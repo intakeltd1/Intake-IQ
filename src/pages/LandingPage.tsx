@@ -38,8 +38,6 @@ const LandingPage = () => {
         <source src="/background-video.mp4" type="video/mp4" />
       </video>
 
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-gradient-to-b from-background/80 via-background/70 to-background z-[1]" />
 
       {/* Floating Accent Orbs */}
       <div className="fixed inset-0 z-[2] pointer-events-none overflow-hidden">
