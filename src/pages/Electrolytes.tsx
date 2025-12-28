@@ -374,37 +374,35 @@ export default function Electrolytes() {
               </div>
 
               {/* Search */}
-              <div className="relative">
+              <div className="relative flex items-center gap-2">
                 <Input
                   type="text"
                   placeholder="Search electrolyte supplements..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="bg-background/20 border-white/30 text-foreground placeholder:text-white/70 focus:bg-background/30 focus:border-white/50 h-7 text-xs"
+                  className="bg-background/20 border-white/30 text-foreground placeholder:text-white/70 focus:bg-background/30 focus:border-white/50 h-7 text-xs flex-1"
                 />
+                {hasSearchCriteria && (
+                  <button
+                    onClick={handleReset}
+                    className="flex items-center gap-1 px-2 py-1.5 rounded-md bg-primary/20 hover:bg-primary/30 text-primary transition-colors text-xs font-medium whitespace-nowrap"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Reset
+                  </button>
+                )}
               </div>
 
-              {/* Results Count and Reset */}
+              {/* Results Count */}
               <div className="flex items-center justify-between text-xs text-foreground/70">
-                <div className="flex items-center gap-2">
-                  <span>
-                    {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''} 
-                    {processingStats.grouped < processingStats.deduplicated && (
-                      <span className="text-foreground/50 ml-1">
-                        ({processingStats.deduplicated} variants)
-                      </span>
-                    )}
-                  </span>
-                  {hasSearchCriteria && (
-                    <button
-                      onClick={handleReset}
-                      className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/20 hover:bg-primary/30 text-primary transition-colors text-xs font-medium"
-                    >
-                      <RotateCcw className="h-3 w-3" />
-                      Reset
-                    </button>
+                <span>
+                  {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''} 
+                  {processingStats.grouped < processingStats.deduplicated && (
+                    <span className="text-foreground/50 ml-1">
+                      ({processingStats.deduplicated} variants)
+                    </span>
                   )}
-                </div>
+                </span>
                 <span>{isSubscription ? 'Subscription mode' : 'One-time purchase mode'}</span>
               </div>
             </div>
