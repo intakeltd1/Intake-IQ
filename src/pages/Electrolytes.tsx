@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import CategoryTabs from "@/components/CategoryTabs";
+import { StickyTimer } from "@/components/Header";
 
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
 import { ElectrolyteProductCard } from "@/components/ElectrolyteProductCard";
@@ -261,6 +262,11 @@ export default function Electrolytes() {
       {/* Video Background with crossfade */}
       <VideoBackground />
 
+      {/* Sticky Timer */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <StickyTimer lastUpdatedISO={lastUpdatedAt || undefined} />
+      </div>
+
       {/* Header */}
       <div className="relative z-10 pt-8 md:pt-10 transition-all duration-1000 delay-1000 fade-in-up">
         <div className="container mx-auto px-2 md:px-4">
@@ -289,11 +295,6 @@ export default function Electrolytes() {
                   <p className="text-xs md:text-sm text-foreground/80 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
                     Compare electrolyte supplements - find the best value for hydration
                   </p>
-                  {lastUpdatedAt && (
-                    <p className="text-[10px] md:text-xs text-foreground/60">
-                      Last updated: {lastUpdatedAt}
-                    </p>
-                  )}
                 </div>
               </div>
             </header>
