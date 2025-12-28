@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import CategoryTabs from "@/components/CategoryTabs";
 import { useDebounce } from 'use-debounce';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Info } from "lucide-react";
@@ -538,7 +539,12 @@ useEffect(() => {
         {/* Combined Header and Search - Single Integrated Box */}
         <div className="relative z-10 transition-all duration-1000 delay-1000 pt-8 md:pt-10 fade-in-up">
           <div className="container mx-auto px-2 md:px-4">
-            <div className="bg-background/20 backdrop-blur-xl shadow-lg rounded-lg">
+            {/* Browser-style Tabs */}
+            <div className="flex justify-center mb-0">
+              <CategoryTabs />
+            </div>
+            
+            <div className="bg-background/20 backdrop-blur-xl shadow-lg rounded-lg rounded-t-none border-t border-white/20">
               {/* Main Header */}
               <header className="text-foreground py-3 md:py-5 relative">
                 <div className="px-4 md:px-6">
@@ -556,15 +562,17 @@ useEffect(() => {
                         className="h-5 md:h-8 mx-auto filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)] cursor-pointer hover:opacity-80 transition-opacity"
                       />
                     </Link>
-                    <p className="text-xs md:text-base text-foreground/90 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)] leading-tight">
-                      Find your next favourite supplement at the best possible price - updated daily.
+                    <h1 className="text-lg md:text-2xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">
+                      Compare Protein
+                    </h1>
+                    <p className="text-xs md:text-sm text-foreground/80 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
+                      Find your next favourite supplement at the best possible price - updated daily
                     </p>
-                    <div className="flex items-center justify-center gap-1 md:gap-2">
-                      <Info className="h-2 w-2 md:h-3 md:w-3 text-foreground/70 hidden md:inline flex-shrink-0" />
-                      <p className="text-[8px] md:text-xs text-foreground/70 drop-shadow-[0_0_2px_rgba(0,0,0,0.4)] leading-tight">
-                        All prices, information and images owned by the originators, hyperlinked. Intake may earn commission on purchases.
+                    {lastUpdatedAt && (
+                      <p className="text-[10px] md:text-xs text-foreground/60">
+                        Last updated: {lastUpdatedAt}
                       </p>
-                    </div>
+                    )}
                   </div>
                 </div>
               </header>

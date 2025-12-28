@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
+import CategoryTabs from "@/components/CategoryTabs";
 import { NavigationDrawer } from "@/components/NavigationDrawer";
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
 import { ElectrolyteProductCard } from "@/components/ElectrolyteProductCard";
@@ -292,7 +293,12 @@ export default function Electrolytes() {
       {/* Header */}
       <div className="relative z-10 pt-4 md:pt-6">
         <div className="container mx-auto px-2 md:px-4">
-          <div className="bg-background/20 backdrop-blur-xl shadow-lg rounded-lg">
+          {/* Browser-style Tabs */}
+          <div className="flex justify-center mb-0">
+            <CategoryTabs />
+          </div>
+          
+          <div className="bg-background/20 backdrop-blur-xl shadow-lg rounded-lg rounded-t-none border-t border-white/20">
             <header className="text-foreground py-3 md:py-5 relative">
               <div className="px-4 md:px-6">
                 {/* Navigation */}
@@ -310,7 +316,7 @@ export default function Electrolytes() {
                     />
                   </Link>
                   <h1 className="text-lg md:text-2xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">
-                    Electrolyte Supplements
+                    Compare Electrolytes
                   </h1>
                   <p className="text-xs md:text-sm text-foreground/80 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
                     Compare electrolyte supplements - find the best value for hydration
