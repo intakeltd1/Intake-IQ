@@ -105,8 +105,8 @@ const CategoryCard = ({
           </Badge>
         )}
 
-        {/* Icon with Animation */}
-        <motion.div
+        {/* Icon */}
+        <div
           className={`
             w-14 h-14 rounded-xl flex items-center justify-center mb-4
             ${available 
@@ -115,7 +115,6 @@ const CategoryCard = ({
             }
             transition-all duration-300
           `}
-          whileHover={available ? { scale: 1.1, rotate: 5 } : undefined}
         >
           <Icon
             className={`w-7 h-7 transition-all duration-300 ${
@@ -124,7 +123,7 @@ const CategoryCard = ({
                 : "text-muted-foreground"
             }`}
           />
-        </motion.div>
+        </div>
 
         {/* Text Content */}
         <div className="space-y-2">
