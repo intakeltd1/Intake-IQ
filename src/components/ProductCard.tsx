@@ -252,8 +252,15 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
 
   const cardContent = (
     <>
-      {/* Product Image - Fixed height percentage for consistent card sizing across all products */}
-      <div className="relative w-full h-[55%] overflow-hidden rounded-t-lg bg-white flex-shrink-0">
+      {/* 
+        SUSTAINABLE CARD LAYOUT:
+        - Image: min-h-[45%] max-h-[55%] allows flexibility based on content needs
+        - Content: flex-1 takes remaining space with priority system
+        - Critical elements use flex-shrink-0 to never shrink
+        - Intake Value is anchored to bottom with mt-auto
+      */}
+      {/* Product Image - Flexible height with min/max bounds for content balance */}
+      <div className="relative w-full min-h-[45%] max-h-[55%] overflow-hidden rounded-t-lg bg-white flex-shrink-0">
         {currentProduct.IMAGE_URL && !imageError ? (
           <img
             src={currentProduct.IMAGE_URL}
@@ -305,21 +312,21 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
         </div>
       </div>
 
-        {/* Product Info - fixed height content area, overflow hidden to prevent layout breaking */}
-        <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col gap-0.5 sm:gap-1 overflow-hidden">
-        {/* Brand Name */}
-        <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+      {/* Product Info - flex-1 takes remaining space, min-h-0 allows shrinking */}
+      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col gap-0.5 sm:gap-1 flex-1 min-h-0">
+        {/* Brand Name - flex-shrink-0 ensures it never shrinks */}
+        <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate flex-shrink-0">
           {getBrandFromProduct(currentProduct)}
         </p>
 
-        {/* Product Title */}
-        <CardTitle className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight">
+        {/* Product Title - flex-shrink-0 ensures it never shrinks */}
+        <CardTitle className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0">
           {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
         </CardTitle>
 
-        {/* Flavour Section */}
+        {/* Flavour Section - can shrink if needed */}
         <div 
-          className="relative z-[150]" 
+          className="relative z-[150] flex-shrink-0" 
           onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
           onTouchStart={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}
@@ -370,8 +377,8 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
           )}
         </div>
 
-        {/* Price and Servings/Amount */}
-        <div className="flex items-center justify-between">
+        {/* Price and Servings/Amount - flex-shrink-0 */}
+        <div className="flex items-center justify-between flex-shrink-0">
           <div className="flex flex-col">
             {currentProduct.RRP && currentProduct.RRP !== currentProduct.PRICE && (
               <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
@@ -389,17 +396,20 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
           )}
         </div>
 
-        {/* Protein per Serving */}
-        <div className="flex justify-between items-center">
-          <span className="text-muted-foreground text-[9px] sm:text-[10px]">Protein/Serving</span>
+        {/* Protein per Serving - flex-shrink-0 */}
+        <div className="flex justify-between items-center flex-shrink-0">
+          <span className="text-muted-foreground text-[9px] sm:text-[10px] truncate">Protein/Serving</span>
           <span className="font-semibold text-foreground tabular-nums text-[10px] sm:text-[11px]">
             {formatProtein(currentProduct.PROTEIN_SERVING)}
           </span>
         </div>
 
-        {/* Intake Value Bar */}
+        {/* Spacer - pushes Intake Value to bottom */}
+        <div className="flex-1 min-h-0" />
+
+        {/* Intake Value Bar - Always at bottom with mt-auto and flex-shrink-0 */}
         {(SHOW_VALUE_BAR_ALWAYS || comparisonProducts.length > 0) && valueRating && !outOfStock && (
-          <div className="pt-1 border-t border-border/30">
+          <div className="pt-1 border-t border-border/30 flex-shrink-0 mt-auto">
             <div className="flex items-center justify-between">
               <span className="text-[7px] sm:text-[8px] font-heading font-medium text-muted-foreground uppercase tracking-wider">
                 Intake Value
