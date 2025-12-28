@@ -312,26 +312,26 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
         </div>
       </div>
 
-      {/* Product Info - flex-1 takes remaining space, min-h-0 allows shrinking */}
-      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col flex-1 min-h-0 overflow-hidden">
-        {/* Scrollable content area: guarantees nothing is cut off while keeping cards uniform */}
-        <div className="flex flex-col gap-0.5 sm:gap-1 flex-1 min-h-0 overflow-y-auto pr-1">
-          {/* Brand Name - flex-shrink-0 ensures it never shrinks */}
-          <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate flex-shrink-0">
+      {/* Product Info - Optimized layout with no scroll needed */}
+      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col flex-1 min-h-0">
+        {/* Content flows naturally - no scroll needed with optimized layout */}
+        <div className="flex flex-col gap-1 flex-1">
+          {/* Brand Name */}
+          <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate">
             {getBrandFromProduct(currentProduct)}
           </p>
 
           {/* Product Title */}
           <CardTitle
-            className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0"
+            className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight"
             title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
           >
             {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
           </CardTitle>
 
-          {/* Flavour Section - can shrink if needed */}
+          {/* Flavour Section */}
           <div 
-            className="relative z-[150] flex-shrink-0" 
+            className="relative z-[150]" 
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
             onTouchStart={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
@@ -371,13 +371,13 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
                     ))}
                   </SelectContent>
                 </Select>
-                <span className="text-[7px] sm:text-[8px] text-muted-foreground whitespace-nowrap flex-shrink-0">
+                <span className="text-[7px] sm:text-[8px] text-muted-foreground whitespace-nowrap">
                   +{product.variantCount! - 1}
                 </span>
               </div>
             ) : (
               <p
-                className="text-[9px] sm:text-[10px] text-muted-foreground line-clamp-1"
+                className="text-[9px] sm:text-[10px] text-muted-foreground line-clamp-1 min-h-[14px]"
                 title={formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, ''))}
               >
                 {formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, ''))}
@@ -385,37 +385,41 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
             )}
           </div>
 
-          {/* Price Row with Protein Chip - flex-shrink-0 */}
-          <div className="flex items-center justify-between gap-1 flex-shrink-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="flex flex-col flex-shrink-0">
-                {currentProduct.RRP && currentProduct.RRP !== currentProduct.PRICE && (
-                  <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
-                    was {safeDisplayValue(currentProduct.RRP)}
-                  </span>
-                )}
-                <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
-                  {safeDisplayValue(currentProduct.PRICE, "Price N/A")}
+          {/* Price and Servings Row */}
+          <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/20">
+            <div className="flex flex-col">
+              {currentProduct.RRP && currentProduct.RRP !== currentProduct.PRICE && (
+                <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
+                  was {safeDisplayValue(currentProduct.RRP)}
                 </span>
-              </div>
-              {/* Protein Chip - inline with price */}
-              {formatProtein(currentProduct.PROTEIN_SERVING) !== 'N/A' && (
-                <Badge className="bg-primary/10 text-primary border border-primary/20 text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0 font-semibold whitespace-nowrap flex-shrink-0">
-                  {formatProtein(currentProduct.PROTEIN_SERVING)}
-                </Badge>
               )}
+              <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
+                {safeDisplayValue(currentProduct.PRICE, "Price N/A")}
+              </span>
             </div>
             {getServingsOrAmountDisplay(currentProduct) && (
-              <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium flex-shrink-0">
+              <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1.5 py-0.5 font-medium">
                 {getServingsOrAmountDisplay(currentProduct)}
               </Badge>
             )}
           </div>
+
+          {/* Protein Per Serving - Highlighted section */}
+          {formatProtein(currentProduct.PROTEIN_SERVING) !== 'N/A' && (
+            <div className="flex items-center justify-between bg-primary/5 border border-primary/10 rounded-md px-2 py-1">
+              <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium">
+                Protein per serving
+              </span>
+              <span className="text-[11px] sm:text-[12px] font-bold text-primary tabular-nums">
+                {formatProtein(currentProduct.PROTEIN_SERVING)}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Intake Value Bar - Always visible; scroll happens above */}
+        {/* Intake Value Bar - Anchored at bottom */}
         {(SHOW_VALUE_BAR_ALWAYS || comparisonProducts.length > 0) && valueRating && !outOfStock && (
-          <div className="pt-1 border-t border-border/30 flex-shrink-0">
+          <div className="pt-1.5 mt-auto border-t border-border/30">
             <div className="flex items-center justify-between">
               <span className="text-[7px] sm:text-[8px] font-heading font-medium text-muted-foreground uppercase tracking-wider">
                 Intake Value
@@ -424,7 +428,7 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
                 {valueRating}
               </span>
             </div>
-            <div className="relative h-1 bg-muted/20 rounded-full overflow-hidden mt-0.5">
+            <div className="relative h-1.5 bg-muted/20 rounded-full overflow-hidden mt-0.5">
               <div 
                 className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getValueRatingColor(valueRating)} rounded-full transition-all duration-500 ${
                   valueRating >= 9.5 ? 'shadow-lg animate-[shimmer_2s_ease-in-out_infinite]' : 'shadow-sm'
