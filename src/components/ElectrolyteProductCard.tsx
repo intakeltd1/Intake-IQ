@@ -268,145 +268,151 @@ export function ElectrolyteProductCard({
         </Button>
       </div>
 
-      {/* Product Info - flex-1 takes remaining space, min-h-0 allows proper flex behavior */}
-      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col gap-0.5 sm:gap-1 flex-1 min-h-0">
-        {/* Brand Name - flex-shrink-0 ensures it never shrinks */}
-        <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate flex-shrink-0">
-          {getBrandFromProduct(currentProduct)}
-        </p>
+      {/* Product Info - flex-1 takes remaining space; scrollable area prevents any cut-off while keeping uniform tiles */}
+      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col flex-1 min-h-0 overflow-hidden">
+        {/* Scrollable content area */}
+        <div className="flex flex-col gap-0.5 sm:gap-1 flex-1 min-h-0 overflow-y-auto pr-1">
+          {/* Brand Name - flex-shrink-0 ensures it never shrinks */}
+          <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate flex-shrink-0">
+            {getBrandFromProduct(currentProduct)}
+          </p>
 
-        {/* Product Title - flex-shrink-0 ensures it never shrinks */}
-        <CardTitle className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0">
+        {/* Product Title */}
+        <CardTitle
+          className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0"
+          title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+        >
           {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
         </CardTitle>
 
-        {/* Flavour Section - with dropdown for variants */}
-        <div 
-          className="relative z-[150] flex-shrink-0" 
-          onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-        >
-          {productHasVariants ? (
-            <div className="flex items-center justify-between gap-1">
-              <Select
-                value={selectedVariantIndex.toString()}
-                onValueChange={handleVariantChange}
-              >
-                <SelectTrigger 
-                  className="h-5 sm:h-6 text-[8px] sm:text-[9px] md:text-[10px] px-1.5 py-0 bg-background border-border/50 w-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                  }}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onTouchEnd={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
+          {/* Flavour Section - with dropdown for variants */}
+          <div 
+            className="relative z-[150] flex-shrink-0" 
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
+            {productHasVariants ? (
+              <div className="flex items-center justify-between gap-1">
+                <Select
+                  value={selectedVariantIndex.toString()}
+                  onValueChange={handleVariantChange}
                 >
-                  <SelectValue placeholder="Select flavour">
-                    {formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, 'No flavour'))}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent 
-                  className="bg-background border-border z-[200] max-h-48"
-                  onPointerDownOutside={(e) => e.stopPropagation()}
+                  <SelectTrigger 
+                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] md:text-[10px] px-1.5 py-0 bg-background border-border/50 w-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <SelectValue placeholder="Select flavour">
+                      {formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, 'No flavour'))}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent 
+                    className="bg-background border-border z-[200] max-h-48"
+                    onPointerDownOutside={(e) => e.stopPropagation()}
+                  >
+                    {(product as GroupedElectrolyteProduct).variants.map((variant, idx) => (
+                      <SelectItem 
+                        key={idx} 
+                        value={idx.toString()}
+                        className="text-xs"
+                      >
+                        {formatFlavour(safeDisplayValue(variant.FLAVOUR, 'No flavour'))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-[7px] sm:text-[8px] text-muted-foreground whitespace-nowrap flex-shrink-0">
+                  +{variantCount - 1}
+                </span>
+              </div>
+            ) : (
+              currentProduct.FLAVOUR && currentProduct.FLAVOUR !== 'Flavour' && (
+                <p
+                  className="text-[9px] sm:text-[10px] text-muted-foreground line-clamp-1"
+                  title={formatFlavour(currentProduct.FLAVOUR)}
                 >
-                  {(product as GroupedElectrolyteProduct).variants.map((variant, idx) => (
-                    <SelectItem 
-                      key={idx} 
-                      value={idx.toString()}
-                      className="text-xs"
-                    >
-                      {formatFlavour(safeDisplayValue(variant.FLAVOUR, 'No flavour'))}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-[7px] sm:text-[8px] text-muted-foreground whitespace-nowrap flex-shrink-0">
-                +{variantCount - 1}
+                  {formatFlavour(currentProduct.FLAVOUR)}
+                </p>
+              )
+            )}
+          </div>
+
+          {/* Price and Servings - flex-shrink-0 */}
+          <div className="flex items-center justify-between flex-shrink-0">
+            <div className="flex flex-col">
+              {currentProduct.RRP_NUM && discountPercent && discountPercent > 0 && (
+                <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
+                  was £{currentProduct.RRP_NUM.toFixed(2)}
+                </span>
+              )}
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
+                  {formatPrice(activePrice)}
+                </span>
+                {discountPercent && discountPercent > 0 && (
+                  <Badge className="bg-green-500/20 text-green-600 text-[8px] px-1 py-0">
+                    -{discountPercent}%
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium">
+              {currentProduct.SERVINGS || 'N/A'} servings
+            </Badge>
+          </div>
+
+          {/* Subscription Amount - highlighted when subscription mode is active */}
+          {isSubscription && currentProduct.SUB_AMOUNT && (
+            <div className="flex items-center gap-1 bg-primary/20 rounded px-1.5 py-1 border border-primary/30 flex-shrink-0">
+              <Zap className="h-3 w-3 text-primary" />
+              <span className="text-[10px] sm:text-[11px] font-semibold text-primary">
+                {currentProduct.SUB_AMOUNT}
               </span>
             </div>
-          ) : (
-            currentProduct.FLAVOUR && currentProduct.FLAVOUR !== 'Flavour' && (
-              <p className="text-[9px] sm:text-[10px] text-muted-foreground line-clamp-1">
-                {formatFlavour(currentProduct.FLAVOUR)}
+          )}
+
+          {/* Electrolyte Breakdown - flex-shrink-0 */}
+          <div className="grid grid-cols-3 gap-1 pt-1 border-t border-border/30 flex-shrink-0">
+            <div className="text-center">
+              <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Sodium</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
+                {currentProduct.SODIUM_MG ? `${Math.round(currentProduct.SODIUM_MG)}mg` : 'N/A'}
               </p>
-            )
+            </div>
+            <div className="text-center">
+              <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Potassium</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
+                {currentProduct.POTASSIUM_MG ? `${Math.round(currentProduct.POTASSIUM_MG)}mg` : 'N/A'}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Magnesium</p>
+              <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
+                {currentProduct.MAGNESIUM_MG ? `${Math.round(currentProduct.MAGNESIUM_MG)}mg` : 'N/A'}
+              </p>
+            </div>
+          </div>
+
+          {/* Total Electrolytes Badge - flex-shrink-0 */}
+          {totalElectrolytes > 0 && (
+            <div className="flex items-center justify-center gap-1 bg-blue-500/10 rounded px-1.5 py-0.5 flex-shrink-0">
+              <Droplets className="h-2.5 w-2.5 text-blue-500" />
+              <span className="text-[8px] sm:text-[9px] font-medium text-blue-600">
+                {Math.round(totalElectrolytes)}mg total electrolytes
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Price and Servings - flex-shrink-0 */}
-        <div className="flex items-center justify-between flex-shrink-0">
-          <div className="flex flex-col">
-            {currentProduct.RRP_NUM && discountPercent && discountPercent > 0 && (
-              <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
-                was £{currentProduct.RRP_NUM.toFixed(2)}
-              </span>
-            )}
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
-                {formatPrice(activePrice)}
-              </span>
-              {discountPercent && discountPercent > 0 && (
-                <Badge className="bg-green-500/20 text-green-600 text-[8px] px-1 py-0">
-                  -{discountPercent}%
-                </Badge>
-              )}
-            </div>
-          </div>
-          <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium">
-            {currentProduct.SERVINGS || 'N/A'} servings
-          </Badge>
-        </div>
-
-        {/* Subscription Amount - highlighted when subscription mode is active */}
-        {isSubscription && currentProduct.SUB_AMOUNT && (
-          <div className="flex items-center gap-1 bg-primary/20 rounded px-1.5 py-1 border border-primary/30 flex-shrink-0">
-            <Zap className="h-3 w-3 text-primary" />
-            <span className="text-[10px] sm:text-[11px] font-semibold text-primary">
-              {currentProduct.SUB_AMOUNT}
-            </span>
-          </div>
-        )}
-
-        {/* Electrolyte Breakdown - flex-shrink-0 */}
-        <div className="grid grid-cols-3 gap-1 pt-1 border-t border-border/30 flex-shrink-0">
-          <div className="text-center">
-            <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Sodium</p>
-            <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
-              {currentProduct.SODIUM_MG ? `${Math.round(currentProduct.SODIUM_MG)}mg` : 'N/A'}
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Potassium</p>
-            <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
-              {currentProduct.POTASSIUM_MG ? `${Math.round(currentProduct.POTASSIUM_MG)}mg` : 'N/A'}
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-[7px] sm:text-[8px] text-muted-foreground truncate">Magnesium</p>
-            <p className="text-[9px] sm:text-[10px] font-semibold text-foreground">
-              {currentProduct.MAGNESIUM_MG ? `${Math.round(currentProduct.MAGNESIUM_MG)}mg` : 'N/A'}
-            </p>
-          </div>
-        </div>
-
-        {/* Total Electrolytes Badge - flex-shrink-0 */}
-        {totalElectrolytes > 0 && (
-          <div className="flex items-center justify-center gap-1 bg-blue-500/10 rounded px-1.5 py-0.5 flex-shrink-0">
-            <Droplets className="h-2.5 w-2.5 text-blue-500" />
-            <span className="text-[8px] sm:text-[9px] font-medium text-blue-600">
-              {Math.round(totalElectrolytes)}mg total electrolytes
-            </span>
-          </div>
-        )}
-
-        {/* Spacer - pushes Intake Value to bottom */}
-        <div className="flex-1 min-h-0" />
-
-        {/* Intake Value Bar - Always at bottom with mt-auto and flex-shrink-0 */}
+        {/* Intake Value Bar - Always visible; scroll happens above */}
         {valueRating && !outOfStock && (
-          <div className="pt-1 border-t border-border/30 flex-shrink-0 mt-auto">
+          <div className="pt-1 border-t border-border/30 flex-shrink-0">
             <div className="flex items-center justify-between">
               <span className="text-[7px] sm:text-[8px] font-heading font-medium text-muted-foreground uppercase tracking-wider">
                 Intake Value

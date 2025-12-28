@@ -313,103 +313,109 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
       </div>
 
       {/* Product Info - flex-1 takes remaining space, min-h-0 allows shrinking */}
-      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col gap-0.5 sm:gap-1 flex-1 min-h-0">
-        {/* Brand Name - flex-shrink-0 ensures it never shrinks */}
-        <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate flex-shrink-0">
-          {getBrandFromProduct(currentProduct)}
-        </p>
+      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col flex-1 min-h-0 overflow-hidden">
+        {/* Scrollable content area: guarantees nothing is cut off while keeping cards uniform */}
+        <div className="flex flex-col gap-0.5 sm:gap-1 flex-1 min-h-0 overflow-y-auto pr-1">
+          {/* Brand Name - flex-shrink-0 ensures it never shrinks */}
+          <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate flex-shrink-0">
+            {getBrandFromProduct(currentProduct)}
+          </p>
 
-        {/* Product Title - flex-shrink-0 ensures it never shrinks */}
-        <CardTitle className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0">
-          {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
-        </CardTitle>
+          {/* Product Title */}
+          <CardTitle
+            className="text-[11px] sm:text-[12px] md:text-[13px] font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0"
+            title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+          >
+            {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+          </CardTitle>
 
-        {/* Flavour Section - can shrink if needed */}
-        <div 
-          className="relative z-[150] flex-shrink-0" 
-          onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-        >
-          {hasVariants ? (
-            <div className="flex items-center justify-between gap-1">
-              <Select
-                value={selectedVariantIndex.toString()}
-                onValueChange={handleVariantChange}
+          {/* Flavour Section - can shrink if needed */}
+          <div 
+            className="relative z-[150] flex-shrink-0" 
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
+            {hasVariants ? (
+              <div className="flex items-center justify-between gap-1">
+                <Select
+                  value={selectedVariantIndex.toString()}
+                  onValueChange={handleVariantChange}
+                >
+                  <SelectTrigger 
+                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] md:text-[10px] px-1.5 py-0 bg-background border-border/50 w-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <SelectValue placeholder="Select flavour">
+                      {formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, 'No flavour'))}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent 
+                    className="bg-background border-border z-[200] max-h-48"
+                    onPointerDownOutside={(e) => e.stopPropagation()}
+                  >
+                    {product.variants!.map((variant, idx) => (
+                      <SelectItem 
+                        key={idx} 
+                        value={idx.toString()}
+                        className="text-xs"
+                      >
+                        {formatFlavour(safeDisplayValue(variant.FLAVOUR, 'No flavour'))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-[7px] sm:text-[8px] text-muted-foreground whitespace-nowrap flex-shrink-0">
+                  +{product.variantCount! - 1}
+                </span>
+              </div>
+            ) : (
+              <p
+                className="text-[9px] sm:text-[10px] text-muted-foreground line-clamp-1"
+                title={formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, ''))}
               >
-                <SelectTrigger 
-                  className="h-5 sm:h-6 text-[8px] sm:text-[9px] md:text-[10px] px-1.5 py-0 bg-background border-border/50 w-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                  }}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onTouchEnd={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  <SelectValue placeholder="Select flavour">
-                    {formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, 'No flavour'))}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent 
-                  className="bg-background border-border z-[200] max-h-48"
-                  onPointerDownOutside={(e) => e.stopPropagation()}
-                >
-                  {product.variants!.map((variant, idx) => (
-                    <SelectItem 
-                      key={idx} 
-                      value={idx.toString()}
-                      className="text-xs"
-                    >
-                      {formatFlavour(safeDisplayValue(variant.FLAVOUR, 'No flavour'))}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-[7px] sm:text-[8px] text-muted-foreground whitespace-nowrap flex-shrink-0">
-                +{product.variantCount! - 1}
+                {formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, ''))}
+              </p>
+            )}
+          </div>
+
+          {/* Price and Servings/Amount - flex-shrink-0 */}
+          <div className="flex items-center justify-between flex-shrink-0">
+            <div className="flex flex-col">
+              {currentProduct.RRP && currentProduct.RRP !== currentProduct.PRICE && (
+                <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
+                  was {safeDisplayValue(currentProduct.RRP)}
+                </span>
+              )}
+              <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
+                {safeDisplayValue(currentProduct.PRICE, "Price N/A")}
               </span>
             </div>
-          ) : (
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground line-clamp-1">
-              {formatFlavour(safeDisplayValue(currentProduct.FLAVOUR, ''))}
-            </p>
-          )}
-        </div>
-
-        {/* Price and Servings/Amount - flex-shrink-0 */}
-        <div className="flex items-center justify-between flex-shrink-0">
-          <div className="flex flex-col">
-            {currentProduct.RRP && currentProduct.RRP !== currentProduct.PRICE && (
-              <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
-                was {safeDisplayValue(currentProduct.RRP)}
-              </span>
+            {getServingsOrAmountDisplay(currentProduct) && (
+              <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium">
+                {getServingsOrAmountDisplay(currentProduct)}
+              </Badge>
             )}
-            <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
-              {safeDisplayValue(currentProduct.PRICE, "Price N/A")}
+          </div>
+
+          {/* Protein per Serving - flex-shrink-0 */}
+          <div className="flex justify-between items-center flex-shrink-0">
+            <span className="text-muted-foreground text-[9px] sm:text-[10px] truncate">Protein/Serving</span>
+            <span className="font-semibold text-foreground tabular-nums text-[10px] sm:text-[11px]">
+              {formatProtein(currentProduct.PROTEIN_SERVING)}
             </span>
           </div>
-          {getServingsOrAmountDisplay(currentProduct) && (
-            <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium">
-              {getServingsOrAmountDisplay(currentProduct)}
-            </Badge>
-          )}
         </div>
 
-        {/* Protein per Serving - flex-shrink-0 */}
-        <div className="flex justify-between items-center flex-shrink-0">
-          <span className="text-muted-foreground text-[9px] sm:text-[10px] truncate">Protein/Serving</span>
-          <span className="font-semibold text-foreground tabular-nums text-[10px] sm:text-[11px]">
-            {formatProtein(currentProduct.PROTEIN_SERVING)}
-          </span>
-        </div>
-
-        {/* Spacer - pushes Intake Value to bottom */}
-        <div className="flex-1 min-h-0" />
-
-        {/* Intake Value Bar - Always at bottom with mt-auto and flex-shrink-0 */}
+        {/* Intake Value Bar - Always visible; scroll happens above */}
         {(SHOW_VALUE_BAR_ALWAYS || comparisonProducts.length > 0) && valueRating && !outOfStock && (
-          <div className="pt-1 border-t border-border/30 flex-shrink-0 mt-auto">
+          <div className="pt-1 border-t border-border/30 flex-shrink-0">
             <div className="flex items-center justify-between">
               <span className="text-[7px] sm:text-[8px] font-heading font-medium text-muted-foreground uppercase tracking-wider">
                 Intake Value
