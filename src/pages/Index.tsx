@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import CategoryTabs from "@/components/CategoryTabs";
 import { useDebounce } from 'use-debounce';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Info } from "lucide-react";
-import { Header, StickyTimer } from "@/components/Header";
+import { AlertCircle } from "lucide-react";
+import { StickyTimer } from "@/components/Header";
 import { SearchFilters } from "@/components/SearchFilters";
 import { ProductCard } from "@/components/ProductCard";
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
@@ -16,6 +16,8 @@ import { applyFuzzySearch, isOutOfStock, getTopValueProducts, getBaseProductName
 import { useScrollAnimations } from "@/components/ScrollAnimations";
 import { calculateIntakeValueRating, calculateDatasetBenchmarks, calculateScoreRange, calculateProductRankings, DatasetBenchmarks, ScoreRange, ProductRankings } from "@/utils/valueRating";
 import { ValueBenchmarksProvider } from "@/hooks/useValueBenchmarks";
+import { PageLoading } from "@/components/PageLoading";
+import { VideoBackground } from "@/components/VideoBackground";
 
 // Data transformation function to handle different field naming conventions
 function transformProductData(rawProduct: any): Product {
@@ -99,7 +101,6 @@ export default function Index() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadingIntervalRef = useRef<number | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const isLoadingRef = useRef(false);
   const batchStartRef = useRef(0);
@@ -399,21 +400,6 @@ useEffect(() => {
 
 // removed displayedCountRef - using functional updates instead
 
-// Ensure background video autoplays on mount/update
-useEffect(() => {
-  const v = videoRef.current;
-  if (!v) return;
-  v.muted = true;
-  const p = v.play();
-  if (p && typeof (p as any).catch === 'function') {
-    (p as Promise<void>).catch(() => {
-      v.muted = true;
-      v.setAttribute('muted', 'true');
-      v.play().catch(() => {});
-    });
-  }
-}, [loading]);
-
 // Reset displayed count when filters change
 useEffect(() => {
   setDisplayedCount(28);
@@ -426,50 +412,10 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background relative overflow-hidden">
-        {/* Video Background with optimized loading */}
-        <video 
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          loop
-          preload="metadata"
-          disablePictureInPicture
-          aria-hidden="true"
-          className="video-background"
-          onLoadedMetadata={() => {
-            const v = videoRef.current;
-            if (v) {
-              v.muted = true;
-              v.play().catch(() => {
-                v.muted = true;
-                v.setAttribute('muted', 'true');
-                v.play().catch(() => {});
-              });
-            }
-          }}
-        >
-          <source src="/background-video.mp4" type="video/mp4" />
-        </video>
-        
-        <div className="relative z-10 flex items-center justify-center min-h-screen">
-          <div className="text-center space-y-6 animate-fade-in">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto"></div>
-            <div className="space-y-2">
-              <p className="text-xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">Loading Products...</p>
-              <p className="text-sm text-foreground/80 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
-                Fetching the latest supplement prices and information
-              </p>
-            </div>
-            <div className="flex justify-center space-x-2">
-              <div className="w-4 h-4 bg-primary rounded-full animate-bounce shadow-lg" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-4 h-4 bg-primary rounded-full animate-bounce shadow-lg" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-4 h-4 bg-primary rounded-full animate-bounce shadow-lg" style={{ animationDelay: '300ms' }}></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageLoading 
+        message="Loading Products..." 
+        subtitle="Fetching the latest supplement prices and information"
+      />
     );
   }
 
@@ -493,34 +439,8 @@ useEffect(() => {
     <ComparisonProvider>
       <ValueBenchmarksProvider benchmarks={benchmarks} scoreRange={scoreRange} rankings={rankings}>
       <div className="min-h-screen relative page-transition">
-        {/* Video Background with seamless loop */}
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          loop
-          preload="metadata"
-          disablePictureInPicture
-          aria-hidden="true"
-          className="video-background"
-          onLoadedMetadata={() => {
-            const v = videoRef.current;
-            if (v) {
-              v.muted = true;
-              v.play().catch(() => {
-                v.muted = true;
-                v.setAttribute('muted', 'true');
-                v.play().catch(() => {});
-              });
-            }
-          }}
-        >
-          <source src="/background-video.mp4" type="video/mp4" />
-        </video>
-        
-        {/* Video fade overlay for seamless looping */}
-        <div className="video-fade-overlay" aria-hidden="true" />
+        {/* Video Background with crossfade */}
+        <VideoBackground />
         
         {/* Sticky Timer - Always at top */}
         <div className="fixed top-0 left-0 right-0 z-50">

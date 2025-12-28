@@ -200,7 +200,29 @@ All colors MUST be HSL.
   will-change: auto;
 }
 
-/* Video fade overlay for seamless looping */
+/* Video crossfade container - uses two videos for seamless loop */
+.video-crossfade-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.video-crossfade-container video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  transition: opacity 2s ease-in-out;
+}
+
+/* Video fade overlay for seamless looping - covers edges */
 .video-fade-overlay {
   position: fixed;
   top: 0;
@@ -209,13 +231,11 @@ All colors MUST be HSL.
   height: 100%;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    transparent 85%,
-    hsl(var(--background) / 0.3) 95%,
-    hsl(var(--background) / 0.5) 100%
-  );
+  background: 
+    linear-gradient(to bottom, hsl(var(--background) / 0.3) 0%, transparent 5%),
+    linear-gradient(to top, hsl(var(--background) / 0.4) 0%, transparent 8%),
+    linear-gradient(to right, hsl(var(--background) / 0.2) 0%, transparent 3%),
+    linear-gradient(to left, hsl(var(--background) / 0.2) 0%, transparent 3%);
 }
 
 /* Simplified featured products container - more transparent */
