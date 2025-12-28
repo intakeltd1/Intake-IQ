@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import CategoryTabs from "@/components/CategoryTabs";
-import { NavigationDrawer } from "@/components/NavigationDrawer";
+
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
 import { ElectrolyteProductCard } from "@/components/ElectrolyteProductCard";
 import { ElectrolyteComparisonWidget } from "@/components/ElectrolyteComparisonWidget";
@@ -273,9 +273,6 @@ export default function Electrolytes() {
             <header className="text-foreground py-3 md:py-5 relative">
               <div className="px-4 md:px-6">
                 {/* Navigation */}
-                <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2">
-                  <NavigationDrawer />
-                </div>
                 
                 {/* Header Content */}
                 <div className="text-center space-y-2 md:space-y-3 px-8 md:px-0">

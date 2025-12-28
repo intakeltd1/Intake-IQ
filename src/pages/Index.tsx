@@ -8,7 +8,7 @@ import { StickyTimer } from "@/components/Header";
 import { SearchFilters } from "@/components/SearchFilters";
 import { ProductCard } from "@/components/ProductCard";
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
-import { NavigationDrawer } from "@/components/NavigationDrawer";
+
 import { ComparisonWidget } from "@/components/ComparisonWidget";
 import { ComparisonModal } from "@/components/ComparisonModal";
 import { ComparisonProvider } from "@/hooks/useComparison";
@@ -459,10 +459,6 @@ useEffect(() => {
               {/* Main Header */}
               <header className="text-foreground py-3 md:py-5 relative">
                 <div className="px-4 md:px-6">
-                  {/* Navigation Drawer - positioned absolutely on left */}
-                  <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2">
-                    <NavigationDrawer />
-                  </div>
                   
                   {/* Main content - truly centered against full page width */}
                   <div className="text-center space-y-2 md:space-y-3 px-8 md:px-0">

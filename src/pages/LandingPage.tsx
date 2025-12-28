@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { NavigationDrawer } from "@/components/NavigationDrawer";
+
 import CategoryCard from "@/components/CategoryCard";
 import { Droplets, Dumbbell } from "lucide-react";
 import proteinHero from "@/assets/protein-hero.jpg";
@@ -117,7 +117,7 @@ const LandingPage = () => {
               style={{ filter: 'drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px rgba(255,255,255,0.7))' }}
             />
           </div>
-          <NavigationDrawer />
+          
         </header>
 
         {/* Hero Section */}
