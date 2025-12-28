@@ -190,8 +190,8 @@ export function ElectrolyteProductCard({
       } flex flex-col relative overflow-hidden rounded-lg`}
       onClick={handleCardClick}
     >
-      {/* Product Image */}
-      <div className="relative w-full overflow-hidden rounded-t-lg bg-white flex-1 min-h-0">
+      {/* Product Image - Fixed height percentage for consistent card sizing across all products */}
+      <div className="relative w-full h-[50%] overflow-hidden rounded-t-lg bg-white flex-shrink-0">
         {currentProduct.IMAGE_URL && !imageError ? (
           <img
             src={currentProduct.IMAGE_URL}
@@ -261,8 +261,8 @@ export function ElectrolyteProductCard({
         </Button>
       </div>
 
-      {/* Product Info */}
-      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col gap-0.5 sm:gap-1">
+      {/* Product Info - fixed height content area, overflow hidden to prevent layout breaking */}
+      <CardContent className="p-2 sm:p-2.5 md:p-3 flex flex-col gap-0.5 sm:gap-1 overflow-hidden">
         {/* Brand Name */}
         <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
           {getBrandFromProduct(currentProduct)}
