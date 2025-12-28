@@ -16,6 +16,7 @@ import { filterByValidFlavor, countInvalidFlavors } from "@/utils/flavorFilter";
 import {
   ElectrolyteProduct,
   hasValidPrice,
+  getActivePrice,
   calculateElectrolyteBenchmarks,
   calculateElectrolyteRankings,
   calculateElectrolyteValueRating,
@@ -135,6 +136,14 @@ export default function Electrolytes() {
     return result;
   }, [searchFiltered, benchmarks, rankings, isSubscription]);
 
+  // Helper to get minimum price across all variants in a grouped product
+  const getMinPriceForTile = (tile: GroupedElectrolyteProduct): number => {
+    const prices = tile.variants
+      .map(v => getActivePrice(v, isSubscription))
+      .filter((p): p is number => p !== null && p > 0);
+    return prices.length > 0 ? Math.min(...prices) : Infinity;
+  };
+
   // Sort grouped products based on selected sort option
   const sortedProducts = useMemo(() => {
     if (!benchmarks || !rankings) return groupedProducts;
@@ -146,12 +155,9 @@ export default function Electrolytes() {
           const ratingB = calculateElectrolyteValueRating(b, benchmarks, rankings, isSubscription) || 0;
           return ratingB - ratingA; // Higher rating = better = comes first
         case 'price_low':
-          const priceA = isSubscription 
-            ? parseFloat(String(a.SUB_PRICE || a.PRICE || '').replace(/[^\d.]/g, '') || '9999')
-            : parseFloat(String(a.PRICE || '').replace(/[^\d.]/g, '') || '9999');
-          const priceB = isSubscription 
-            ? parseFloat(String(b.SUB_PRICE || b.PRICE || '').replace(/[^\d.]/g, '') || '9999')
-            : parseFloat(String(b.PRICE || '').replace(/[^\d.]/g, '') || '9999');
+          // Sort by the cheapest variant within each tile
+          const priceA = getMinPriceForTile(a);
+          const priceB = getMinPriceForTile(b);
           return priceA - priceB;
         case 'sodium':
           const sodiumA = typeof a.SODIUM_MG === 'number' ? a.SODIUM_MG : 0;
