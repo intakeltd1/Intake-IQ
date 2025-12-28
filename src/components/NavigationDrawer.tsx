@@ -50,7 +50,7 @@ export function NavigationDrawer() {
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-foreground hover:bg-white/10 p-2 border border-white/30 rounded-md"
+          className="text-foreground hover:bg-white/20 p-2.5 border border-white/40 rounded-lg bg-background/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200"
         >
           <Menu className="h-5 w-5" />
         </Button>
