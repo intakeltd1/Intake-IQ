@@ -343,26 +343,35 @@ export function ElectrolyteProductCard({
             )}
           </div>
 
-          {/* Price and Servings - flex-shrink-0 */}
-          <div className="flex items-center justify-between flex-shrink-0">
-            <div className="flex flex-col">
-              {currentProduct.RRP_NUM && discountPercent && discountPercent > 0 && (
-                <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
-                  was £{currentProduct.RRP_NUM.toFixed(2)}
-                </span>
-              )}
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
-                  {formatPrice(activePrice)}
-                </span>
-                {discountPercent && discountPercent > 0 && (
-                  <Badge className="bg-green-500/20 text-green-600 text-[8px] px-1 py-0">
-                    -{discountPercent}%
-                  </Badge>
+          {/* Price Row with Total Electrolytes Chip - flex-shrink-0 */}
+          <div className="flex items-center justify-between gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex flex-col flex-shrink-0">
+                {currentProduct.RRP_NUM && discountPercent && discountPercent > 0 && (
+                  <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through">
+                    was £{currentProduct.RRP_NUM.toFixed(2)}
+                  </span>
                 )}
+                <div className="flex items-center gap-1">
+                  <span className="text-sm sm:text-base md:text-lg font-bold text-primary tabular-nums tracking-tight">
+                    {formatPrice(activePrice)}
+                  </span>
+                  {discountPercent && discountPercent > 0 && (
+                    <Badge className="bg-green-500/20 text-green-600 text-[8px] px-1 py-0">
+                      -{discountPercent}%
+                    </Badge>
+                  )}
+                </div>
               </div>
+              {/* Total Electrolytes Chip - inline with price */}
+              {totalElectrolytes > 0 && (
+                <Badge className="bg-blue-500/10 text-blue-600 border border-blue-500/20 text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0 font-semibold whitespace-nowrap flex-shrink-0">
+                  <Droplets className="h-2 w-2 mr-0.5" />
+                  {Math.round(totalElectrolytes)}mg
+                </Badge>
+              )}
             </div>
-            <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium">
+            <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 font-medium flex-shrink-0">
               {currentProduct.SERVINGS || 'N/A'} servings
             </Badge>
           </div>
@@ -398,16 +407,6 @@ export function ElectrolyteProductCard({
               </p>
             </div>
           </div>
-
-          {/* Total Electrolytes Badge - flex-shrink-0 */}
-          {totalElectrolytes > 0 && (
-            <div className="flex items-center justify-center gap-1 bg-blue-500/10 rounded px-1.5 py-0.5 flex-shrink-0">
-              <Droplets className="h-2.5 w-2.5 text-blue-500" />
-              <span className="text-[8px] sm:text-[9px] font-medium text-blue-600">
-                {Math.round(totalElectrolytes)}mg total electrolytes
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Intake Value Bar - Always visible; scroll happens above */}
