@@ -14,25 +14,24 @@ const Tab = ({ to, label, icon, isActive }: TabProps) => (
     to={to}
     className={cn(
       "flex-1 flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-200",
-      "relative",
+      "relative border-b-2",
       isActive
-        ? "text-foreground"
-        : "text-foreground/40 hover:text-foreground/70"
+        ? "text-foreground border-b-white bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.15),inset_0_-2px_10px_rgba(255,255,255,0.05)]"
+        : "text-foreground/40 border-b-transparent hover:text-foreground/60 hover:bg-white/5"
     )}
   >
     <span className={cn(
-      "transition-opacity duration-200",
-      isActive ? "opacity-100" : "opacity-50"
+      "transition-all duration-200",
+      isActive ? "opacity-100 drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]" : "opacity-50"
     )}>
       {icon}
     </span>
-    <span className="font-medium">
+    <span className={cn(
+      "font-medium transition-all duration-200",
+      isActive ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" : ""
+    )}>
       {label}
     </span>
-    {/* Active indicator line */}
-    {isActive && (
-      <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-white rounded-full" />
-    )}
   </Link>
 );
 
@@ -44,7 +43,7 @@ const CategoryTabs = () => {
   const isElectrolytesActive = currentPath === "/electrolytes";
 
   return (
-    <div className="flex w-full bg-background/10 backdrop-blur-sm rounded-t-lg border-b border-white/10">
+    <div className="flex w-full bg-background/15 backdrop-blur-sm rounded-t-lg overflow-hidden">
       <Tab
         to="/protein"
         label="Protein"
