@@ -306,7 +306,7 @@ export default function Electrolytes() {
                     <img 
                       src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
                       alt="Intake Logo" 
-                      className="h-5 md:h-8 mx-auto filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)]"
+                      className="h-5 md:h-8 mx-auto filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)] cursor-pointer hover:opacity-80 transition-opacity"
                     />
                   </Link>
                   <h1 className="text-lg md:text-2xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">
