@@ -49,6 +49,39 @@ export type Database = {
           },
         ]
       }
+      price_alert_history: {
+        Row: {
+          alert_price: number | null
+          alert_type: string
+          id: string
+          product_title: string | null
+          product_url: string
+          sent_at: string
+          sent_date: string
+          user_id: string
+        }
+        Insert: {
+          alert_price?: number | null
+          alert_type: string
+          id?: string
+          product_title?: string | null
+          product_url: string
+          sent_at?: string
+          sent_date?: string
+          user_id: string
+        }
+        Update: {
+          alert_price?: number | null
+          alert_type?: string
+          id?: string
+          product_title?: string | null
+          product_url?: string
+          sent_at?: string
+          sent_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       price_history: {
         Row: {
           id: string
