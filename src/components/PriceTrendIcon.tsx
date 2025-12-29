@@ -27,22 +27,19 @@ export function PriceTrendIcon({ trend, className = '' }: PriceTrendIconProps) {
       <Tooltip>
         <TooltipTrigger asChild>
           <div 
-            className={`h-8 w-8 flex items-center justify-center rounded-full border-2 backdrop-blur-sm transition-all duration-300 cursor-default hover:scale-110 ${
-              isFalling 
-                ? 'border-green-500 bg-green-500/20' 
-                : 'border-red-500 bg-red-500/20'
-            } ${className}`}
+            className={`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 flex items-center justify-center rounded-full border-2 backdrop-blur-sm transition-all duration-300 cursor-default hover:scale-110 bg-background/80 border-white/60 ${className}`}
           >
             {isFalling ? (
-              <TrendingDown className="h-4 w-4 text-green-500" strokeWidth={2.5} />
+              <TrendingDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-green-500" strokeWidth={2.5} />
             ) : (
-              <TrendingUp className="h-4 w-4 text-red-500" strokeWidth={2.5} />
+              <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-red-500" strokeWidth={2.5} />
             )}
           </div>
         </TooltipTrigger>
         <TooltipContent 
-          side="top" 
-          className={`text-xs font-medium ${
+          side="left" 
+          sideOffset={8}
+          className={`text-xs font-medium z-[9999] ${
             isFalling 
               ? 'bg-green-500/90 text-white border-green-400' 
               : 'bg-red-500/90 text-white border-red-400'
