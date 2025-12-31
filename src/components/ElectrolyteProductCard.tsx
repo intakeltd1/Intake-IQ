@@ -236,7 +236,7 @@ export function ElectrolyteProductCard({
           )}
           {isTopValue && !outOfStock && !isTopValueOfDay && (
             <Badge className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white font-semibold shadow-lg text-[9px] sm:text-[10px]">
-              Best Value
+              Great Value
             </Badge>
           )}
         </div>

@@ -39,11 +39,12 @@ export function PriceTrendIcon({ trend, className = '' }: PriceTrendIconProps) {
         <TooltipContent 
           side="left" 
           sideOffset={8}
-          className={`text-xs font-medium z-[9999] ${
+          className={`text-xs font-medium z-[9999] pointer-events-none ${
             isFalling 
               ? 'bg-green-500/90 text-white border-green-400' 
               : 'bg-red-500/90 text-white border-red-400'
           }`}
+          style={{ position: 'fixed' }}
         >
           {isFalling 
             ? 'Price is on a downward trend — good time to buy!' 

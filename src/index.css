@@ -249,3 +249,47 @@ All colors MUST be HSL.
   100% { border-color: rgba(255, 255, 255, 1); }
 }
 
+/* Golden circling animation for Top Value of the Day */
+.golden-circle-border {
+  position: relative;
+  border-radius: 0.75rem;
+}
+
+.golden-circle-border::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  background: linear-gradient(135deg, #f59e0b, #fcd34d, #f59e0b);
+  border-radius: 1.1rem;
+  z-index: -1;
+  animation: golden-pulse 2s ease-in-out infinite;
+}
+
+.golden-circle-border::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 3px solid #fbbf24;
+  border-radius: 1rem;
+  animation: golden-circle 3s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes golden-circle {
+  0% { border-color: rgba(251, 191, 36, 1); box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); }
+  50% { border-color: rgba(245, 158, 11, 1); box-shadow: 0 0 30px rgba(245, 158, 11, 0.8); }
+  100% { border-color: rgba(251, 191, 36, 1); box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); }
+}
+
+@keyframes golden-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.02); }
+}
+

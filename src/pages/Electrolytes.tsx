@@ -414,7 +414,7 @@ export default function Electrolytes() {
                       className="staggered-fade-in"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="white-circle-border">
+                      <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
                         <ElectrolyteProductCard
                           product={product}
                           isSubscription={isSubscription}
@@ -450,7 +450,7 @@ export default function Electrolytes() {
                       style={{ animationDelay: `${Math.min(index, 20) * 40}ms` }}
                     >
                       {showBorder ? (
-                        <div className="white-circle-border">
+                        <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
                           <ElectrolyteProductCard
                             product={product}
                             isSubscription={isSubscription}

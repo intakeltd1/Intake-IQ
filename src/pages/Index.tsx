@@ -523,7 +523,7 @@ useEffect(() => {
                         className="staggered-fade-in"
                         style={{ animationDelay: `${500 + (index * 100)}ms` }}
                       >
-                        <div className="white-circle-border">
+                        <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
                           <ProductCard
                             product={product}
                             isFeatured={!isTopValueOfDay}
@@ -555,7 +555,7 @@ useEffect(() => {
                         style={{ animationDelay: `${Math.max(0, (index - batchStartRef.current)) * 40}ms` }}
                       >
                         {(isTop10 || isTopValueOfDay) ? (
-                          <div className="white-circle-border">
+                          <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
                             <ProductCard
                               product={product}
                               isTopValue={isTop10 && !isTopValueOfDay}
