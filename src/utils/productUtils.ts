@@ -14,21 +14,22 @@ const getDataCompletenessScore = (product: Product): number => {
   return score;
 };
 
-// Deduplicate products by TITLE + AMOUNT + FLAVOUR + SERVINGS, keeping the version with most complete data
-// This ensures each size variant of each flavour with different serving counts is preserved as a unique product
+// Deduplicate products by TITLE + AMOUNT + SERVINGS only (NOT flavour), keeping the version with most complete data
+// This ensures each size variant with different serving counts is preserved as ONE tile
+// Flavour variants are handled via the dropdown within each tile
 export const deduplicateByFlavour = (products: Product[]): Product[] => {
   const seen = new Map<string, Product>();
   
   products.forEach(product => {
     const title = (product.TITLE || '').toLowerCase().trim();
-    const flavour = (product.FLAVOUR || '').toLowerCase().trim();
     // Normalize amount to grams for consistent deduplication
     const grams = parseGrams(product.AMOUNT);
     const amountKey = grams !== null ? String(grams) : 'unknown';
-    // Include servings in the key to distinguish products with same title/flavour/amount but different serving counts
+    // Include servings in the key to distinguish products with same title/amount but different serving counts
     const servingsKey = product.SERVINGS ? String(product.SERVINGS).trim() : 'unknown';
     
-    const key = `${title}|${amountKey}|${flavour}|${servingsKey}`;
+    // Key does NOT include flavour - all flavours of same product/size/servings become one tile
+    const key = `${title}|${amountKey}|${servingsKey}`;
     
     const existingProduct = seen.get(key);
     if (!existingProduct) {
