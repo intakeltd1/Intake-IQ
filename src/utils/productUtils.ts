@@ -14,8 +14,8 @@ const getDataCompletenessScore = (product: Product): number => {
   return score;
 };
 
-// Deduplicate products by TITLE + AMOUNT + FLAVOUR, keeping the version with most complete data
-// This ensures each size variant of each flavour is preserved as a unique product
+// Deduplicate products by TITLE + AMOUNT + FLAVOUR + SERVINGS, keeping the version with most complete data
+// This ensures each size variant of each flavour with different serving counts is preserved as a unique product
 export const deduplicateByFlavour = (products: Product[]): Product[] => {
   const seen = new Map<string, Product>();
   
@@ -25,8 +25,10 @@ export const deduplicateByFlavour = (products: Product[]): Product[] => {
     // Normalize amount to grams for consistent deduplication
     const grams = parseGrams(product.AMOUNT);
     const amountKey = grams !== null ? String(grams) : 'unknown';
+    // Include servings in the key to distinguish products with same title/flavour/amount but different serving counts
+    const servingsKey = product.SERVINGS ? String(product.SERVINGS).trim() : 'unknown';
     
-    const key = `${title}|${amountKey}|${flavour}`;
+    const key = `${title}|${amountKey}|${flavour}|${servingsKey}`;
     
     const existingProduct = seen.get(key);
     if (!existingProduct) {
@@ -66,12 +68,12 @@ export interface GroupedProduct extends Product {
   variantCount: number;
 }
 
-// Group products by exact title + amount (size), selecting best value as default
-// This ensures each package size gets its own tile, with flavour variants in the dropdown
+// Group products by exact title + amount + servings (size), selecting best value as default
+// This ensures each package size with specific serving count gets its own tile, with flavour variants in the dropdown
 export const groupProductsByTitle = (products: Product[], benchmarks?: DatasetBenchmarks | null, scoreRange?: ScoreRange | null): GroupedProduct[] => {
   const groupedMap = new Map<string, Product[]>();
   
-  // Group by exact title + normalized amount (case-insensitive, trimmed)
+  // Group by exact title + normalized amount + servings (case-insensitive, trimmed)
   products.forEach(product => {
     const title = (product.TITLE || '').toLowerCase().trim();
     if (!title) return;
@@ -79,7 +81,9 @@ export const groupProductsByTitle = (products: Product[], benchmarks?: DatasetBe
     // Normalize amount to grams for consistent grouping
     const grams = parseGrams(product.AMOUNT);
     const amountKey = grams !== null ? String(grams) : 'unknown';
-    const groupKey = `${title}|${amountKey}`;
+    // Include servings for unique grouping
+    const servingsKey = product.SERVINGS ? String(product.SERVINGS).trim() : 'unknown';
+    const groupKey = `${title}|${amountKey}|${servingsKey}`;
     
     if (!groupedMap.has(groupKey)) {
       groupedMap.set(groupKey, []);
