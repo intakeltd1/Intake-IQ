@@ -10,6 +10,7 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { StickyTimer } from "@/components/Header";
 
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
+import { ElectrolyteSignUpPromptWrapper } from "@/components/ElectrolyteSignUpPromptWrapper";
 import { ElectrolyteProductCard } from "@/components/ElectrolyteProductCard";
 import { ElectrolyteComparisonWidget } from "@/components/ElectrolyteComparisonWidget";
 import { ElectrolyteComparisonModal } from "@/components/ElectrolyteComparisonModal";
@@ -519,6 +520,7 @@ export default function Electrolytes() {
         </div>
 
         <CookiesDisclaimer />
+        <ElectrolyteSignUpPromptWrapper hasSearchCriteria={hasSearchCriteria} />
         
         {/* Comparison Widget & Modal */}
         <ElectrolyteComparisonWidget />

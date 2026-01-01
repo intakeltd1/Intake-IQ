@@ -8,10 +8,11 @@ import { StickyTimer } from "@/components/Header";
 import { SearchFilters } from "@/components/SearchFilters";
 import { ProductCard } from "@/components/ProductCard";
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
+import { SignUpPromptWrapper } from "@/components/SignUpPromptWrapper";
 
 import { ComparisonWidget } from "@/components/ComparisonWidget";
 import { ComparisonModal } from "@/components/ComparisonModal";
-import { ComparisonProvider } from "@/hooks/useComparison";
+import { ComparisonProvider, useComparison } from "@/hooks/useComparison";
 import { applyFuzzySearch, isOutOfStock, getTopValueProducts, getBaseProductName, groupProductsByTitle, GroupedProduct, deduplicateByFlavour, isValidProductPrice } from "@/utils/productUtils";
 import { useScrollAnimations } from "@/components/ScrollAnimations";
 import { calculateIntakeValueRating, calculateDatasetBenchmarks, calculateScoreRange, calculateProductRankings, DatasetBenchmarks, ScoreRange, ProductRankings } from "@/utils/valueRating";
@@ -615,6 +616,7 @@ useEffect(() => {
            </div>
 
           <CookiesDisclaimer />
+          <SignUpPromptWrapper hasSearchCriteria={hasSearchCriteria} />
           <ComparisonWidget />
           <ComparisonModal />
         </div>

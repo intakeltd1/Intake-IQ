@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,7 +53,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const resend = new Resend(resendApiKey);
+    // Using fetch API directly for Resend instead of SDK
 
     // Initialize Supabase client with service role for full access
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -265,14 +264,23 @@ const handler = async (req: Request): Promise<Response> => {
       `;
 
       try {
-        const emailResponse = await resend.emails.send({
-          from: "Intake <onboarding@resend.dev>",
-          to: [userEmail],
-          subject: `🔔 Price Alert: ${alerts.length} product${alerts.length > 1 ? "s" : ""} on sale!`,
-          html: emailHtml,
+        const emailResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Intake IQ <alerts@intakeiq.intakeltd.com>",
+            to: [userEmail],
+            subject: `🔔 Price Alert: ${alerts.length} product${alerts.length > 1 ? "s" : ""} on sale!`,
+            html: emailHtml,
+          }),
         });
 
-        console.log(`Email sent to ${userEmail}:`, emailResponse);
+        const emailResult = await emailResponse.json();
+
+        console.log(`Email sent to ${userEmail}:`, emailResult);
         emailsSent++;
 
         // Record the alerts as sent
