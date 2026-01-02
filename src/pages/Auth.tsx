@@ -1,19 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
-import { z } from 'zod';
-const emailSchema = z.string().email('Please enter a valid email address');
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
+import { z } from "zod";
+
+const emailSchema = z.string().email("Please enter a valid email address");
+
 export default function Auth() {
-  const {
-    user,
-    signInWithMagicLink
-  } = useAuth();
+  const { user, signInWithMagicLink } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,9 +20,10 @@ export default function Auth() {
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate("/");
     }
   }, [user, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -34,19 +34,23 @@ export default function Auth() {
       setError(result.error.errors[0].message);
       return;
     }
+
     setLoading(true);
-    const {
-      error
-    } = await signInWithMagicLink(email);
+
+    const { error } = await signInWithMagicLink(email);
+
     setLoading(false);
+
     if (error) {
       setError(error.message);
     } else {
       setSent(true);
     }
   };
+
   if (sent) {
-    return <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -65,47 +69,61 @@ export default function Auth() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Try a different email
             </Button>
-            <Button variant="ghost" className="w-full" onClick={() => navigate('/')}>
+            <Button variant="ghost" className="w-full" onClick={() => navigate("/")}>
               Back to home
             </Button>
           </CardContent>
         </Card>
-      </div>;
+      </div>
+    );
   }
-  return <div className="min-h-screen flex items-center justify-center bg-background p-4">
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <img alt="Intake" className="h-10 w-auto" src="https://cdn.shopify.com/s/files/1/0754/9327/7963/files/Your_paragraph_text.png?v=1722783058" />
+            <img src="/intake-logo.png" alt="Intake" className="h-10 w-auto" />
           </div>
-          <CardTitle className="text-xl">Sign in to Intake</CardTitle>
-          <CardDescription>
-            Save your favorite products and get price alerts
-          </CardDescription>
+          <CardTitle className="text-xl">Sign in to Intake IQ</CardTitle>
+          <CardDescription>Save your favorite products and get price alerts</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="pl-10" disabled={loading} autoFocus />
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  disabled={loading}
+                  autoFocus
+                />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={loading || !email}>
-              {loading ? <>
+              {loading ? (
+                <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Sending...
-                </> : 'Send Magic Link'}
+                </>
+              ) : (
+                "Send Magic Link"
+              )}
             </Button>
           </form>
           <div className="mt-6 text-center">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to home
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>;
+    </div>
+  );
 }
