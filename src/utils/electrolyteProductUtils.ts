@@ -89,7 +89,16 @@ const normalizeFlavor = (flavor: string | undefined | null): string => {
     .replace(/\s+/g, ' '); // Normalize whitespace
 };
 
+// Check if electrolyte product is out of stock
+const isElectrolyteOutOfStock = (product: ElectrolyteProduct): boolean => {
+  const stockStatus = (product.STOCK_STATUS || '').toLowerCase();
+  return stockStatus.includes('out of stock') || 
+         stockStatus.includes('unavailable') || 
+         stockStatus.includes('sold out');
+};
+
 // Deduplicate variants within a group by flavor, keeping the best value for each flavor
+// Prioritizes in-stock products over out-of-stock
 const deduplicateVariantsByFlavor = (
   variants: ElectrolyteProduct[],
   benchmarks: ElectrolyteBenchmarks | null,
@@ -105,18 +114,26 @@ const deduplicateVariantsByFlavor = (
     if (!existing) {
       flavorMap.set(normalizedFlavor, product);
     } else {
-      // Keep the one with better value rating, or if equal, more complete data
-      const existingRating = calculateElectrolyteValueRating(existing, benchmarks, rankings, isSubscription) || 0;
-      const newRating = calculateElectrolyteValueRating(product, benchmarks, rankings, isSubscription) || 0;
+      const existingOutOfStock = isElectrolyteOutOfStock(existing);
+      const newOutOfStock = isElectrolyteOutOfStock(product);
       
-      if (newRating > existingRating) {
+      // Prioritize in-stock products
+      if (!newOutOfStock && existingOutOfStock) {
         flavorMap.set(normalizedFlavor, product);
-      } else if (newRating === existingRating) {
-        // Tie-breaker: use data completeness
-        const existingScore = getDataCompletenessScore(existing);
-        const newScore = getDataCompletenessScore(product);
-        if (newScore > existingScore) {
+      } else if (existingOutOfStock === newOutOfStock) {
+        // Same stock status - use value rating as tie-breaker
+        const existingRating = calculateElectrolyteValueRating(existing, benchmarks, rankings, isSubscription) || 0;
+        const newRating = calculateElectrolyteValueRating(product, benchmarks, rankings, isSubscription) || 0;
+        
+        if (newRating > existingRating) {
           flavorMap.set(normalizedFlavor, product);
+        } else if (newRating === existingRating) {
+          // Tie-breaker: use data completeness
+          const existingScore = getDataCompletenessScore(existing);
+          const newScore = getDataCompletenessScore(product);
+          if (newScore > existingScore) {
+            flavorMap.set(normalizedFlavor, product);
+          }
         }
       }
     }
@@ -127,6 +144,7 @@ const deduplicateVariantsByFlavor = (
 
 // Group products by first 3 words of title + servings, selecting best value as default
 // Each group becomes one tile with a flavor dropdown
+// Prioritizes in-stock products as the default tile display
 export const groupElectrolytesByTitle = (
   products: ElectrolyteProduct[], 
   benchmarks: ElectrolyteBenchmarks | null, 
@@ -151,14 +169,22 @@ export const groupElectrolytesByTitle = (
     // Step 1: Deduplicate by flavor within the group (removes duplicate "Variety Pack" etc.)
     const uniqueFlavors = deduplicateVariantsByFlavor(variants, benchmarks, rankings, isSubscription);
     
-    // Step 2: Sort by value rating (best first)
+    // Step 2: Sort by stock status first (in-stock first), then by value rating
     const sortedVariants = [...uniqueFlavors].sort((a, b) => {
+      const aOutOfStock = isElectrolyteOutOfStock(a);
+      const bOutOfStock = isElectrolyteOutOfStock(b);
+      
+      // In-stock products come first
+      if (!aOutOfStock && bOutOfStock) return -1;
+      if (aOutOfStock && !bOutOfStock) return 1;
+      
+      // Same stock status, sort by value rating
       const ratingA = calculateElectrolyteValueRating(a, benchmarks, rankings, isSubscription) || 0;
       const ratingB = calculateElectrolyteValueRating(b, benchmarks, rankings, isSubscription) || 0;
       return ratingB - ratingA;
     });
     
-    // Use the best value variant as the default display
+    // Use the best in-stock variant as the default display
     const bestVariant = sortedVariants[0];
     
     grouped.push({
