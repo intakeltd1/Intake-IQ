@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, ExternalLink, Heart, LogIn, LogOut, User, Home, Dumbbell, Droplets } from 'lucide-react';
+import { Menu, X, Heart, LogIn, LogOut, User, Home, Dumbbell, Droplets } from 'lucide-react';
 import {
   Drawer,
   DrawerClose,
@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 
 const internalLinks = [
   { title: 'Home', path: '/', icon: Home, description: 'Intake IQ landing' },
@@ -22,11 +22,7 @@ const internalLinks = [
   { title: 'Electrolytes', path: '/electrolytes', icon: Droplets, description: 'Compare electrolyte supplements' },
 ];
 
-const externalLinks = [
-  { title: 'Intake Ltd', url: 'https://intakeltd.com', description: 'Visit our main website' },
-  { title: 'Products', url: 'https://www.intakeltd.com/collections/all', description: 'Browse our full product range' },
-  { title: 'Contact', url: 'https://www.intakeltd.com/pages/contact', description: 'Get in touch with us' },
-];
+// External links removed per user request
 
 export function NavigationDrawer() {
   const [open, setOpen] = useState(false);
@@ -150,34 +146,14 @@ export function NavigationDrawer() {
 
           <Separator className="mb-4" />
 
-          {/* External Links */}
-          <div>
+          {/* Feedback Widget */}
+          <div className="mb-4">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
-              Intake Ltd
+              Feedback
             </p>
-            <nav className="space-y-1">
-              {externalLinks.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors group"
-                  onClick={() => setOpen(false)}
-                >
-                  <div>
-                    <div className="font-medium text-foreground group-hover:text-primary">
-                      {link.title}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {link.description}
-                    </div>
-                  </div>
-                  <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-                </a>
-              ))}
-            </nav>
+            <FeedbackWidget />
           </div>
+
         </div>
         
         <DrawerFooter className="border-t">

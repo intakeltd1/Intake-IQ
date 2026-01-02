@@ -39,19 +39,21 @@ export default function Electrolytes() {
   const [debouncedQuery] = useDebounce(query, 300);
   const [isSubscription, setIsSubscription] = useState(true);
   const [sortBy, setSortBy] = useState('value');
+  const [formatFilter, setFormatFilter] = useState('all');
   const [displayedCount, setDisplayedCount] = useState(28);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
 
   // Check if any filter/search is active
   const hasSearchCriteria = useMemo(() => {
-    return query.trim() !== '' || sortBy !== 'value';
-  }, [query, sortBy]);
+    return query.trim() !== '' || sortBy !== 'value' || formatFilter !== 'all';
+  }, [query, sortBy, formatFilter]);
 
   // Reset all filters
   const handleReset = () => {
     setQuery('');
     setSortBy('value');
+    setFormatFilter('all');
     setDisplayedCount(28);
   };
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -117,21 +119,50 @@ export default function Electrolytes() {
     return calculateElectrolyteRankings(filteredByMode, benchmarks, isSubscription);
   }, [filteredByMode, benchmarks, isSubscription]);
 
-  // Apply search filter
+  // Apply search and format filter
   const searchFiltered = useMemo(() => {
-    if (!debouncedQuery.trim()) return filteredByMode;
+    let filtered = filteredByMode;
     
-    const searchLower = debouncedQuery.toLowerCase();
-    return filteredByMode.filter(product => {
-      const title = (product.TITLE || '').toLowerCase();
-      const company = (product.COMPANY || '').toLowerCase();
-      const flavour = (product.FLAVOUR || '').toLowerCase();
-      
-      return title.includes(searchLower) || 
-             company.includes(searchLower) || 
-             flavour.includes(searchLower);
-    });
-  }, [filteredByMode, debouncedQuery]);
+    // Text search
+    if (debouncedQuery.trim()) {
+      const searchLower = debouncedQuery.toLowerCase();
+      filtered = filtered.filter(product => {
+        const title = (product.TITLE || '').toLowerCase();
+        const company = (product.COMPANY || '').toLowerCase();
+        const flavour = (product.FLAVOUR || '').toLowerCase();
+        
+        return title.includes(searchLower) || 
+               company.includes(searchLower) || 
+               flavour.includes(searchLower);
+      });
+    }
+    
+    // Format filter
+    if (formatFilter !== 'all') {
+      filtered = filtered.filter(product => {
+        const format = (product.FORMAT || '').toLowerCase();
+        const title = (product.TITLE || '').toLowerCase();
+        const subAmount = (product.SUB_AMOUNT || '').toLowerCase();
+        
+        switch (formatFilter) {
+          case 'powder':
+            return format.includes('powder') || title.includes('powder') || subAmount.includes('g)') || subAmount.includes('kg)');
+          case 'tablet':
+            return format.includes('tablet') || format.includes('effervescent') || title.includes('tablet') || title.includes('effervescent');
+          case 'sachet':
+            return format.includes('sachet') || format.includes('stick') || title.includes('sachet') || subAmount.includes('sachet');
+          case 'drink':
+            return format.includes('drink') || format.includes('ready') || title.includes('drink') || title.includes('ready to drink');
+          case 'capsule':
+            return format.includes('capsule') || format.includes('cap') || title.includes('capsule');
+          default:
+            return true;
+        }
+      });
+    }
+    
+    return filtered;
+  }, [filteredByMode, debouncedQuery, formatFilter]);
 
   // Process: deduplicate and group by flavor (like protein page)
   const { grouped: groupedProducts, stats: processingStats } = useMemo(() => {
@@ -164,8 +195,12 @@ export default function Electrolytes() {
           const priceB = getMinPriceForTile(b);
           return priceA - priceB;
         case 'sodium':
-          const sodiumA = typeof a.SODIUM_MG === 'number' ? a.SODIUM_MG : 0;
-          const sodiumB = typeof b.SODIUM_MG === 'number' ? b.SODIUM_MG : 0;
+          // Sort by sodium - products without sodium shown last
+          const sodiumA = typeof a.SODIUM_MG === 'number' && a.SODIUM_MG > 0 ? a.SODIUM_MG : -1;
+          const sodiumB = typeof b.SODIUM_MG === 'number' && b.SODIUM_MG > 0 ? b.SODIUM_MG : -1;
+          // If one has sodium and other doesn't, sodium one comes first
+          if (sodiumA === -1 && sodiumB !== -1) return 1;
+          if (sodiumB === -1 && sodiumA !== -1) return -1;
           return sodiumB - sodiumA; // Higher sodium first
         default:
           return 0;
@@ -339,10 +374,11 @@ export default function Electrolytes() {
                 {/* Divider */}
                 <div className="hidden sm:block w-px h-6 bg-white/30" />
 
-                {/* Sort Dropdown and Reset */}
-                <div className="flex items-center gap-2">
+                {/* Sort Dropdown, Format Filter and Reset */}
+                <div className="flex flex-wrap items-center gap-2 justify-center">
+                  {/* Sort Dropdown */}
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="bg-background/20 border-white/30 text-foreground focus:bg-background/30 focus:border-white/50 h-8 text-xs w-full sm:w-[160px]">
+                    <SelectTrigger className="bg-background/20 border-white/30 text-foreground focus:bg-background/30 focus:border-white/50 h-8 text-xs w-[130px]">
                       <div className="flex items-center gap-1 truncate">
                         <SortDesc className="h-3 w-3 shrink-0 text-white/70" />
                         <SelectValue placeholder="Sort by" />
@@ -351,9 +387,25 @@ export default function Electrolytes() {
                     <SelectContent className="bg-card border-border shadow-lg z-50">
                       <SelectItem value="value">Best Value</SelectItem>
                       <SelectItem value="price_low">Price: Low to High</SelectItem>
-                      <SelectItem value="sodium">Sodium per Serving</SelectItem>
+                      <SelectItem value="sodium">Sodium: High to Low</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  {/* Format Filter */}
+                  <Select value={formatFilter} onValueChange={setFormatFilter}>
+                    <SelectTrigger className="bg-background/20 border-white/30 text-foreground focus:bg-background/30 focus:border-white/50 h-8 text-xs w-[130px]">
+                      <SelectValue placeholder="Format" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border shadow-lg z-50">
+                      <SelectItem value="all">All Formats</SelectItem>
+                      <SelectItem value="powder">Powder</SelectItem>
+                      <SelectItem value="tablet">Tablet/Effervescent</SelectItem>
+                      <SelectItem value="sachet">Sachet/Stick</SelectItem>
+                      <SelectItem value="drink">Ready to Drink</SelectItem>
+                      <SelectItem value="capsule">Capsule</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   {hasSearchCriteria && (
                     <button
                       onClick={handleReset}
@@ -403,7 +455,7 @@ export default function Electrolytes() {
               <h2 className="text-lg md:text-xl font-bold text-center mb-3 md:mb-4 text-foreground drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
                 {isSubscription ? "Best Subscription Deals" : "Best One-Time Purchases"}
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mobile-stable-grid">
                 {topValueProducts.map((product, index) => {
                   const productUrl = product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}`;
                   const isTopValueOfDay = topValueOfDayUrl === productUrl;
@@ -437,7 +489,7 @@ export default function Electrolytes() {
         <div className="container mx-auto px-2 md:px-4 pb-8">
           {sortedProducts.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 mb-8 mobile-stable-grid">
                 {displayedProducts.map((product, index) => {
                   const productUrl = product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}`;
                   const isTopValueOfDay = topValueOfDayUrl === productUrl;

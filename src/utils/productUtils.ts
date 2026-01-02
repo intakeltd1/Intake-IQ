@@ -14,19 +14,23 @@ const getDataCompletenessScore = (product: Product): number => {
   return score;
 };
 
-// Deduplicate products by TITLE + AMOUNT + SERVINGS only (NOT flavour), keeping the version with most complete data
-// This ensures each size variant with different serving counts is preserved as ONE tile
-// Flavour variants are handled via the dropdown within each tile
+// CORE DEDUPLICATION: Title + Amount + Servings = ONE tile
+// All flavour variants of the same product/size/servings become one tile
+// This is the FINAL deduplication step - no duplicates should ever pass through
 export const deduplicateByFlavour = (products: Product[]): Product[] => {
   const seen = new Map<string, Product>();
   
   products.forEach(product => {
     const title = (product.TITLE || '').toLowerCase().trim();
+    
     // Normalize amount to grams for consistent deduplication
     const grams = parseGrams(product.AMOUNT);
     const amountKey = grams !== null ? String(grams) : 'unknown';
-    // Include servings in the key to distinguish products with same title/amount but different serving counts
-    const servingsKey = product.SERVINGS ? String(product.SERVINGS).trim() : 'unknown';
+    
+    // Normalize servings - extract just the number
+    const servingsRaw = String(product.SERVINGS || '').trim();
+    const servingsMatch = servingsRaw.match(/(\d+)/);
+    const servingsKey = servingsMatch ? servingsMatch[1] : 'unknown';
     
     // Key does NOT include flavour - all flavours of same product/size/servings become one tile
     const key = `${title}|${amountKey}|${servingsKey}`;
@@ -35,17 +39,39 @@ export const deduplicateByFlavour = (products: Product[]): Product[] => {
     if (!existingProduct) {
       seen.set(key, product);
     } else {
-      // Keep the one with more complete data
-      const existingScore = getDataCompletenessScore(existingProduct);
-      const newScore = getDataCompletenessScore(product);
+      // Keep the one with more complete data AND in-stock status
+      const existingInStock = !isProductOutOfStock(existingProduct);
+      const newInStock = !isProductOutOfStock(product);
       
-      if (newScore > existingScore) {
-        seen.set(key, product); // Replace with better data version
+      // Prioritize in-stock products
+      if (newInStock && !existingInStock) {
+        seen.set(key, product);
+      } else if (existingInStock === newInStock) {
+        // If same stock status, use data completeness
+        const existingScore = getDataCompletenessScore(existingProduct);
+        const newScore = getDataCompletenessScore(product);
+        if (newScore > existingScore) {
+          seen.set(key, product);
+        }
       }
     }
   });
   
   return Array.from(seen.values());
+};
+
+// Helper to check out of stock status (used in deduplication)
+const isProductOutOfStock = (product: Product): boolean => {
+  const stockIndicators = [
+    product.STOCK_STATUS?.toLowerCase(),
+    product.PRICE?.toLowerCase(),
+  ];
+  
+  return stockIndicators.some(indicator => 
+    indicator?.includes('out of stock') ||
+    indicator?.includes('unavailable') ||
+    indicator?.includes('sold out')
+  ) || false;
 };
 
 export interface Product {
@@ -92,18 +118,26 @@ export const groupProductsByTitle = (products: Product[], benchmarks?: DatasetBe
     groupedMap.get(groupKey)!.push(product);
   });
   
-  // Convert to GroupedProduct array, selecting best value variant as default
+  // Convert to GroupedProduct array, selecting best in-stock variant as default
   const grouped: GroupedProduct[] = [];
   
   groupedMap.forEach((variants) => {
-    // Sort variants by Intake Value rating (best first)
+    // Sort variants by stock status first (in-stock first), then by Intake Value rating
     const sortedVariants = [...variants].sort((a, b) => {
+      const aOutOfStock = isProductOutOfStock(a);
+      const bOutOfStock = isProductOutOfStock(b);
+      
+      // In-stock products come first
+      if (!aOutOfStock && bOutOfStock) return -1;
+      if (aOutOfStock && !bOutOfStock) return 1;
+      
+      // Same stock status, sort by value rating
       const ratingA = calculateIntakeValueRating(a, benchmarks || undefined, scoreRange || undefined) || 0;
       const ratingB = calculateIntakeValueRating(b, benchmarks || undefined, scoreRange || undefined) || 0;
       return ratingB - ratingA;
     });
     
-    // Use the best value variant as the default display
+    // Use the best in-stock variant as the default display
     const bestVariant = sortedVariants[0];
     
     grouped.push({

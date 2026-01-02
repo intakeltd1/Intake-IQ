@@ -203,9 +203,13 @@ export function SignUpPromptModal({
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-                  className="mx-auto mb-4 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-purple-500 flex items-center justify-center shadow-lg shadow-primary/30"
+                  className="mx-auto mb-4"
                 >
-                  <Star className="h-7 w-7 text-primary-foreground" />
+                  <img 
+                    src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
+                    alt="Intake IQ Logo" 
+                    className="h-10 mx-auto filter drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]"
+                  />
                 </motion.div>
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-bold">

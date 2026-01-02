@@ -282,3 +282,36 @@ All colors MUST be HSL.
   box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
 }
 
+/* Mobile stability - GPU-accelerated transforms and layout containment */
+.mobile-stable-grid {
+  contain: layout style;
+  will-change: auto;
+}
+
+.mobile-stable-grid > * {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout style paint;
+}
+
+/* Prevent layout shift on mobile */
+@media (max-width: 768px) {
+  .staggered-fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .mobile-stable-grid > * {
+    transition: none !important;
+    animation-delay: 0ms !important;
+  }
+  
+  /* Stabilize card heights on mobile */
+  .mobile-stable-grid > div {
+    min-height: 0;
+    height: auto;
+  }
+}
+
