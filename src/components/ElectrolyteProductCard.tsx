@@ -187,7 +187,7 @@ export function ElectrolyteProductCard({
       ref={cardRef}
       className={`h-[380px] sm:h-[420px] md:h-[460px] transition-all duration-300 group hover:shadow-card ${getBorderClass()} ${
         outOfStock ? 'opacity-60 grayscale' : 'hover:scale-[1.02]'
-      } flex flex-col relative overflow-hidden rounded-lg border bg-card`}
+      } flex flex-col relative overflow-hidden rounded-lg`}
     >
       {/* 
         3-ZONE CARD LAYOUT:
@@ -242,29 +242,33 @@ export function ElectrolyteProductCard({
             {currentProduct.FORMAT}
           </Badge>
         )}
-      </div>
 
-      {/* Add to comparison button */}
-      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-[100] flex flex-col gap-1 sm:gap-1.5">
-        {currentProduct.FORMAT && <div className="h-5 sm:h-6" />} {/* Spacer for format badge */}
-        <Button
-          onClick={handleAddToComparison}
-          disabled={isCompared || comparisonProducts.length >= 4 || outOfStock}
-          size="icon"
-          className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full shadow-lg transition-all duration-300 ${
-            isCompared
-              ? 'bg-blue-500 text-white cursor-default'
-              : comparisonProducts.length >= 4
-              ? 'bg-muted text-muted-foreground cursor-not-allowed'
-              : 'bg-background/80 backdrop-blur-sm text-foreground hover:bg-blue-500 hover:text-white hover:scale-110'
-          } ${addAnimation ? 'scale-125' : ''}`}
+        {/* Add to comparison button (positioned below format badge when present) */}
+        <div
+          className={`absolute right-1.5 sm:right-2 z-[100] ${currentProduct.FORMAT ? 'top-8 sm:top-9' : 'top-1.5 sm:top-2'}`}
         >
-          {isCompared ? (
-            <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : (
-            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-          )}
-        </Button>
+          <Button
+            onClick={handleAddToComparison}
+            disabled={isCompared || comparisonProducts.length >= 4 || outOfStock}
+            size="sm"
+            variant="outline"
+            className={`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 border-2 backdrop-blur-sm transition-all duration-300 rounded-full hover:scale-110 ${
+              addAnimation ? 'scale-0' : ''
+            } ${
+              isCompared
+                ? 'bg-blue-500 border-blue-500 text-white'
+                : comparisonProducts.length >= 4
+                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                : 'bg-background/80 border-white/60 text-white hover:border-blue-500 hover:text-blue-500 hover:bg-blue-500/10'
+            }`}
+          >
+            {isCompared ? (
+              <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 font-bold" />
+            ) : (
+              <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 font-bold" />
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* ZONE 2 & 3: Content Area */}
