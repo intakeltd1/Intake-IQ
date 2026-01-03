@@ -224,7 +224,8 @@ All colors MUST be HSL.
 /* White circling animation with visible offset gap */
 .white-circle-border {
   position: relative;
-  border-radius: 0.75rem;
+  border-radius: var(--radius);
+  isolation: isolate;
 }
 
 .white-circle-border::after {
@@ -235,10 +236,10 @@ All colors MUST be HSL.
   right: -4px;
   bottom: -4px;
   border: 3px solid white;
-  border-radius: 1rem;
+  border-radius: calc(var(--radius) + 4px);
   animation: white-circle 4s linear infinite;
   pointer-events: none;
-  z-index: 10;
+  z-index: 1;
 }
 
 @keyframes white-circle {
@@ -252,7 +253,8 @@ All colors MUST be HSL.
 /* Golden glow animation for Top Value of the Day - Subtle glow only, no pulsating */
 .golden-circle-border {
   position: relative;
-  border-radius: 0.75rem;
+  border-radius: var(--radius);
+  isolation: isolate;
 }
 
 .golden-circle-border::before {
@@ -263,8 +265,8 @@ All colors MUST be HSL.
   right: -6px;
   bottom: -6px;
   background: linear-gradient(135deg, #f59e0b, #fcd34d, #f59e0b);
-  border-radius: 1.1rem;
-  z-index: -1;
+  border-radius: calc(var(--radius) + 6px);
+  z-index: 0;
   opacity: 0.4;
 }
 
@@ -276,9 +278,9 @@ All colors MUST be HSL.
   right: -4px;
   bottom: -4px;
   border: 3px solid #fbbf24;
-  border-radius: 1rem;
+  border-radius: calc(var(--radius) + 4px);
   pointer-events: none;
-  z-index: 10;
+  z-index: 1;
   box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
 }
 
