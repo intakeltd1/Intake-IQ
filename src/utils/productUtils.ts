@@ -14,49 +14,56 @@ const getDataCompletenessScore = (product: Product): number => {
   return score;
 };
 
-// CORE DEDUPLICATION: Title + Amount + Servings = ONE tile
-// All flavour variants of the same product/size/servings become one tile
-// This is the FINAL deduplication step - no duplicates should ever pass through
+// CORE DEDUPLICATION: Title + Amount + Servings + Flavour = ONE variant record
+// This removes true duplicates from the data (same product, same size/servings, same flavour)
+// Flavour is intentionally included so flavour dropdowns can still be built later by grouping.
 export const deduplicateByFlavour = (products: Product[]): Product[] => {
   const seen = new Map<string, Product>();
-  
-  products.forEach(product => {
-    const title = (product.TITLE || '').toLowerCase().trim();
-    
+
+  products.forEach((product) => {
+    const title = (product.TITLE || "").toLowerCase().trim();
+
     // Normalize amount to grams for consistent deduplication
     const grams = parseGrams(product.AMOUNT);
-    const amountKey = grams !== null ? String(grams) : 'unknown';
-    
+    const amountKey = grams !== null ? String(grams) : "unknown";
+
     // Normalize servings - extract just the number
-    const servingsRaw = String(product.SERVINGS || '').trim();
+    const servingsRaw = String(product.SERVINGS || "").trim();
     const servingsMatch = servingsRaw.match(/(\d+)/);
-    const servingsKey = servingsMatch ? servingsMatch[1] : 'unknown';
-    
-    // Key does NOT include flavour - all flavours of same product/size/servings become one tile
-    const key = `${title}|${amountKey}|${servingsKey}`;
-    
+    const servingsKey = servingsMatch ? servingsMatch[1] : "unknown";
+
+    // Normalize flavour (keep empty as "unknown" so we don't merge flavoured + unflavoured incorrectly)
+    const flavourKey = (product.FLAVOUR || "").toLowerCase().trim() || "unknown";
+
+    // Key INCLUDES flavour - we only remove true duplicates
+    const key = `${title}|${amountKey}|${servingsKey}|${flavourKey}`;
+
     const existingProduct = seen.get(key);
     if (!existingProduct) {
       seen.set(key, product);
-    } else {
-      // Keep the one with more complete data AND in-stock status
-      const existingInStock = !isProductOutOfStock(existingProduct);
-      const newInStock = !isProductOutOfStock(product);
-      
-      // Prioritize in-stock products
-      if (newInStock && !existingInStock) {
+      return;
+    }
+
+    // Keep the one with more complete data AND in-stock status
+    const existingInStock = !isProductOutOfStock(existingProduct);
+    const newInStock = !isProductOutOfStock(product);
+
+    // Prioritize in-stock products
+    if (newInStock && !existingInStock) {
+      seen.set(key, product);
+      return;
+    }
+
+    if (existingInStock === newInStock) {
+      // If same stock status, use data completeness
+      const existingScore = getDataCompletenessScore(existingProduct);
+      const newScore = getDataCompletenessScore(product);
+      if (newScore > existingScore) {
         seen.set(key, product);
-      } else if (existingInStock === newInStock) {
-        // If same stock status, use data completeness
-        const existingScore = getDataCompletenessScore(existingProduct);
-        const newScore = getDataCompletenessScore(product);
-        if (newScore > existingScore) {
-          seen.set(key, product);
-        }
       }
     }
   });
-  
+
   return Array.from(seen.values());
 };
 

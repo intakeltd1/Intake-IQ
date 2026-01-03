@@ -195,16 +195,7 @@ useEffect(() => {
     return calculateProductRankings(products, benchmarks);
   }, [products, benchmarks]);
 
-  // Get best value products using utility function (already deduplicates and filters out-of-stock)
-  const bestValueProducts = useMemo(() => {
-    return getTopValueProducts(products, 4);
-  }, [products]);
-
-  // Get top 10 best value products for highlighting (reduced from 30 for performance)
-  const top10Products = useMemo(() => {
-    const top10 = getTopValueProducts(products, 10);
-    return new Set(top10.map(p => p.URL || p.LINK));
-  }, [products]);
+  // (moved) bestValueProducts and top10Products are calculated after grouping so flavour dropdowns work consistently.
 
   // Identify the SINGLE Top Value of the Day product (rank 1 only)
   const topValueOfDayUrl = useMemo(() => {
@@ -322,13 +313,20 @@ useEffect(() => {
     });
   }, [products, debouncedQuery, sortBy, quantityFilter, productTypeFilter]);
 
-  // Simplified lookups for performance
-  const topValueUrls = useMemo(() => new Set(bestValueProducts.map(p => p.URL || p.LINK)), [bestValueProducts]);
-
   // Group products by title to consolidate flavour variants
   const groupedProducts = useMemo(() => {
     return groupProductsByTitle(filteredAndSortedProducts, benchmarks, scoreRange);
   }, [filteredAndSortedProducts, benchmarks, scoreRange]);
+
+  // Get best value products & highlights FROM grouped tiles (so each tile can have a flavour dropdown)
+  const bestValueProducts = useMemo(() => {
+    return getTopValueProducts(groupedProducts, 4);
+  }, [groupedProducts]);
+
+  const top10Products = useMemo(() => {
+    const top10 = getTopValueProducts(groupedProducts, 10);
+    return new Set(top10.map((p) => p.URL || p.LINK));
+  }, [groupedProducts]);
 
   // Products to display with pagination (using grouped products)
   const displayedProducts = useMemo(() => {
