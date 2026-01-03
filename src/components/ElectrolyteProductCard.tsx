@@ -104,11 +104,7 @@ export function ElectrolyteProductCard({
     ? calculateElectrolyteValueRating(currentProduct, benchmarks, rankings, isSubscription)
     : null;
 
-  const handleCardClick = () => {
-    if (currentProduct.PAGE_URL) {
-      window.open(currentProduct.PAGE_URL, '_blank', 'noopener,noreferrer');
-    }
-  };
+  // Card click handler removed - only title should be hyperlinked
 
   const handleAddToComparison = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -190,9 +186,8 @@ export function ElectrolyteProductCard({
     <Card 
       ref={cardRef}
       className={`h-[380px] sm:h-[420px] md:h-[460px] transition-all duration-300 group hover:shadow-card ${getBorderClass()} ${
-        outOfStock ? 'opacity-60 grayscale' : 'hover:scale-[1.02] hover:rounded-lg cursor-pointer'
-      } flex flex-col relative overflow-hidden rounded-lg`}
-      onClick={handleCardClick}
+        outOfStock ? 'opacity-60 grayscale' : 'hover:scale-[1.02]'
+      } flex flex-col relative overflow-hidden rounded-lg border bg-card`}
     >
       {/* 
         3-ZONE CARD LAYOUT:
@@ -288,13 +283,30 @@ export function ElectrolyteProductCard({
               {getBrandFromProduct(currentProduct)}
             </p>
 
-            {/* Product Title */}
-            <CardTitle
-              className={`${getTextSizeClasses(stage, 'title')} font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0`}
-              title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
-            >
-              {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
-            </CardTitle>
+            {/* Product Title - This is the ONLY hyperlink */}
+            {currentProduct.PAGE_URL ? (
+              <a
+                href={currentProduct.PAGE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block no-underline hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <CardTitle
+                  className={`${getTextSizeClasses(stage, 'title')} font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0 text-foreground hover:text-primary transition-colors cursor-pointer`}
+                  title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+                >
+                  {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+                </CardTitle>
+              </a>
+            ) : (
+              <CardTitle
+                className={`${getTextSizeClasses(stage, 'title')} font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0`}
+                title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+              >
+                {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+              </CardTitle>
+            )}
 
             {/* Flavour Section */}
             <div 

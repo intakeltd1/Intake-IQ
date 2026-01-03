@@ -333,13 +333,30 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
               {getBrandFromProduct(currentProduct)}
             </p>
 
-            {/* Product Title */}
-            <CardTitle
-              className={`${getTextSizeClasses(stage, 'title')} font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0`}
-              title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
-            >
-              {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
-            </CardTitle>
+            {/* Product Title - This is the ONLY hyperlink */}
+            {productUrl ? (
+              <a
+                href={productUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleCardClick}
+                className="block no-underline hover:underline"
+              >
+                <CardTitle
+                  className={`${getTextSizeClasses(stage, 'title')} font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0 text-foreground hover:text-primary transition-colors`}
+                  title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+                >
+                  {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+                </CardTitle>
+              </a>
+            ) : (
+              <CardTitle
+                className={`${getTextSizeClasses(stage, 'title')} font-heading font-semibold line-clamp-2 leading-tight flex-shrink-0`}
+                title={toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+              >
+                {toTitleCase(safeDisplayValue(currentProduct.TITLE, "Product Title Not Available"))}
+              </CardTitle>
+            )}
 
             {/* Flavour Section */}
             <div 
@@ -516,23 +533,9 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
           )}
         </div>
 
-        {productUrl ? (
-          <a
-            href={productUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={handleCardClick}
-            className="block h-full w-full cursor-pointer text-inherit no-underline hover:text-inherit"
-          >
-            <div className="h-full flex flex-col">
-              {cardContent}
-            </div>
-          </a>
-        ) : (
-          <div className="h-full flex flex-col">
-            {cardContent}
-          </div>
-        )}
+        <div className="h-full flex flex-col">
+          {cardContent}
+        </div>
       </Card>
 
       {/* Login Prompt Dialog */}
