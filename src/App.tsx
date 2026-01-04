@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { GlobalNavigation } from "@/components/GlobalNavigation";
+
 import LandingPage from "./pages/LandingPage";
 import Index from "./pages/Index";
 import Electrolytes from "./pages/Electrolytes";
@@ -24,14 +25,24 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <GlobalNavigation />
             <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/protein" element={<Index />} />
-              <Route path="/electrolytes" element={<Electrolytes />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/favorites" element={<Favorites />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              {/* ROUTES WITH NAV */}
+              <Route
+                element={
+                  <>
+                    <GlobalNavigation />
+                    <Routes>
+                      <Route path="/" element={<LandingPage />} />
+                      <Route path="/protein" element={<Index />} />
+                      <Route path="/electrolytes" element={<Electrolytes />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/favorites" element={<Favorites />} />
+                    </Routes>
+                  </>
+                }
+              />
+
+              {/* 404 – NO NAV, CLEAN BRAND EXPERIENCE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
