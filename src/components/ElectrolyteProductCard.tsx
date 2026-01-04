@@ -213,7 +213,7 @@ export function ElectrolyteProductCard({
     <>
       <Card 
         ref={cardRef}
-        className={`h-[380px] sm:h-[420px] md:h-[460px] group ${getBorderClass()} ${
+        className={`h-[495px] sm:h-[545px] md:h-[600px] group ${getBorderClass()} ${
           outOfStock ? 'opacity-60 grayscale' : ''
         } flex flex-col relative overflow-hidden rounded-lg border bg-card`}
       >
