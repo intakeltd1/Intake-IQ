@@ -1,7 +1,7 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ImageIcon, Crown, Zap, Droplets, Plus, Check } from "lucide-react";
+import { ImageIcon, Crown, Zap, Droplets, Plus, Check, Heart } from "lucide-react";
 import { useState, useRef } from "react";
 import { 
   ElectrolyteProduct, 
@@ -15,6 +15,11 @@ import { GroupedElectrolyteProduct } from "@/utils/electrolyteProductUtils";
 import { useElectrolyteComparison, getProductKey } from "@/hooks/useElectrolyteComparison";
 import { useTileFit, getDetailsZoneClasses, getTextSizeClasses } from "@/hooks/useTileFit";
 import { toTitleCase, formatBrand as formatBrandName, formatFlavour } from "@/utils/textFormatting";
+import { useAuth } from "@/hooks/useAuth";
+import { useFavorites } from "@/hooks/useFavorites";
+import { usePriceTrend } from "@/hooks/usePriceTrend";
+import { PriceTrendIcon } from "@/components/PriceTrendIcon";
+import { LoginPromptDialog } from "@/components/LoginPromptDialog";
 import {
   Select,
   SelectContent,
@@ -84,6 +89,7 @@ export function ElectrolyteProductCard({
   const [imageError, setImageError] = useState(false);
   const [addAnimation, setAddAnimation] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   
   // 3-zone layout fit detection
@@ -93,9 +99,18 @@ export function ElectrolyteProductCard({
   const productHasVariants = hasVariants(product);
   const currentProduct = productHasVariants ? product.variants[selectedVariantIndex] : product;
   const variantCount = productHasVariants ? product.variantCount : 1;
+  const productUrl = currentProduct.PAGE_URL;
   
   const { addToComparison, isInComparison, comparisonProducts } = useElectrolyteComparison();
   const isCompared = isInComparison(currentProduct);
+  
+  // Auth & Favorites
+  const { user } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const isProductFavorited = productUrl ? isFavorite(productUrl) : false;
+  
+  // Price trend
+  const priceTrend = usePriceTrend(productUrl);
   
   const activePrice = getActivePrice(currentProduct, isSubscription);
   const outOfStock = currentProduct.IN_STOCK === false;
@@ -160,6 +175,24 @@ export function ElectrolyteProductCard({
     }
   };
 
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
+    
+    // Convert electrolyte product to favorites format
+    toggleFavorite({
+      URL: productUrl,
+      LINK: productUrl,
+      TITLE: currentProduct.TITLE,
+      IMAGE_URL: currentProduct.IMAGE_URL,
+    });
+  };
+
   const getBorderClass = () => {
     if (outOfStock) return 'border-border/20';
     if (isTopValueOfDay) return 'border-2 border-amber-400';
@@ -183,12 +216,13 @@ export function ElectrolyteProductCard({
     : null;
 
   return (
-    <Card 
-      ref={cardRef}
-      className={`h-[380px] sm:h-[420px] md:h-[460px] transition-all duration-300 group hover:shadow-card ${getBorderClass()} ${
-        outOfStock ? 'opacity-60 grayscale' : 'hover:scale-[1.02]'
-      } flex flex-col relative overflow-hidden rounded-lg`}
-    >
+    <>
+      <Card 
+        ref={cardRef}
+        className={`h-[380px] sm:h-[420px] md:h-[460px] transition-all duration-300 group hover:shadow-card ${getBorderClass()} ${
+          outOfStock ? 'opacity-60 grayscale' : 'hover:scale-[1.02]'
+        } flex flex-col relative overflow-hidden rounded-lg border bg-card`}
+      >
       {/* 
         3-ZONE CARD LAYOUT:
         Zone 1 (Image): flex-shrink-0 with bounded height
@@ -238,15 +272,14 @@ export function ElectrolyteProductCard({
 
         {/* Format Badge */}
         {currentProduct.FORMAT && (
-          <Badge variant="secondary" className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 text-[8px] sm:text-[9px]">
+          <Badge variant="secondary" className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 text-[8px] sm:text-[9px]">
             {currentProduct.FORMAT}
           </Badge>
         )}
 
-        {/* Add to comparison button (positioned below format badge when present) */}
-        <div
-          className={`absolute right-1.5 sm:right-2 z-[100] ${currentProduct.FORMAT ? 'top-8 sm:top-9' : 'top-1.5 sm:top-2'}`}
-        >
+        {/* Right-side icon stack */}
+        <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-[100] flex flex-col gap-1 sm:gap-1.5">
+          {/* Add to comparison button */}
           <Button
             onClick={handleAddToComparison}
             disabled={isCompared || comparisonProducts.length >= 4 || outOfStock}
@@ -268,6 +301,25 @@ export function ElectrolyteProductCard({
               <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 font-bold" />
             )}
           </Button>
+
+          {/* Favorite button */}
+          <Button
+            onClick={handleFavoriteClick}
+            size="sm"
+            variant="outline"
+            className={`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 border-2 backdrop-blur-sm transition-all duration-300 rounded-full hover:scale-110 ${
+              isProductFavorited 
+                ? 'bg-red-500 border-red-500 text-white' 
+                : 'bg-background/80 border-white/60 text-white hover:border-red-500 hover:text-red-500 hover:bg-red-500/10'
+            }`}
+          >
+            <Heart className={`h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 ${isProductFavorited ? 'fill-current' : ''}`} />
+          </Button>
+
+          {/* Price trend indicator */}
+          {priceTrend && !outOfStock && (
+            <PriceTrendIcon trend={priceTrend} />
+          )}
         </div>
       </div>
 
@@ -326,7 +378,7 @@ export function ElectrolyteProductCard({
                     onValueChange={handleVariantChange}
                   >
                     <SelectTrigger 
-                      className={`${stage >= 1 ? 'h-4 sm:h-5' : 'h-5 sm:h-6'} text-[8px] sm:text-[9px] md:text-[10px] px-1.5 py-0 bg-background border-border/50 w-full`}
+                      className={`min-h-[32px] sm:min-h-[28px] h-auto text-[10px] sm:text-[9px] md:text-[10px] px-2 py-1.5 bg-background border-border/50 w-full touch-manipulation`}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -341,13 +393,15 @@ export function ElectrolyteProductCard({
                     </SelectTrigger>
                     <SelectContent 
                       className="bg-background border-border z-[200] max-h-48"
+                      position="popper"
+                      sideOffset={4}
                       onPointerDownOutside={(e) => e.stopPropagation()}
                     >
                       {(product as GroupedElectrolyteProduct).variants.map((variant, idx) => (
                         <SelectItem 
                           key={idx} 
                           value={idx.toString()}
-                          className="text-xs"
+                          className="text-xs min-h-[36px] py-2 touch-manipulation"
                         >
                           {formatFlavour(safeDisplayValue(variant.FLAVOUR, 'No flavour'))}
                         </SelectItem>
@@ -471,6 +525,13 @@ export function ElectrolyteProductCard({
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+
+      {/* Login Prompt Dialog */}
+      <LoginPromptDialog 
+        open={showLoginPrompt} 
+        onOpenChange={setShowLoginPrompt} 
+      />
+    </>
   );
 }
