@@ -361,7 +361,7 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
             {/* Flavour Section - HIGH Z-INDEX for mobile clickability */}
             <div 
               className="relative z-[500] flex-shrink-0 isolate" 
-              onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+              onClick={(e) => { e.stopPropagation(); }}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchEnd={(e) => e.stopPropagation()}
             >
@@ -374,12 +374,10 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
                     <SelectTrigger 
                       className="min-h-[44px] sm:min-h-[36px] h-auto text-[11px] sm:text-[10px] md:text-[11px] px-3 py-2 bg-background border-border w-full touch-manipulation cursor-pointer active:bg-accent"
                       style={{ touchAction: 'manipulation' }}
+                      // Only stop propagation so the native focus/activation can occur on mobile.
                       onClick={(e) => {
                         e.stopPropagation();
-                        e.preventDefault();
                       }}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      onTouchEnd={(e) => e.stopPropagation()}
                       onPointerDown={(e) => e.stopPropagation()}
                     >
                       <SelectValue placeholder="Select flavour">
