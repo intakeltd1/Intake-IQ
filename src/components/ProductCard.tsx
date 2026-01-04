@@ -372,7 +372,7 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
                     onValueChange={handleVariantChange}
                   >
                     <SelectTrigger 
-                      className={`${stage >= 1 ? 'h-4 sm:h-5' : 'h-5 sm:h-6'} text-[8px] sm:text-[9px] md:text-[10px] px-1.5 py-0 bg-background border-border/50 w-full`}
+                      className={`min-h-[32px] sm:min-h-[28px] h-auto text-[10px] sm:text-[9px] md:text-[10px] px-2 py-1.5 bg-background border-border/50 w-full touch-manipulation`}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -387,13 +387,15 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
                     </SelectTrigger>
                     <SelectContent 
                       className="bg-background border-border z-[200] max-h-48"
+                      position="popper"
+                      sideOffset={4}
                       onPointerDownOutside={(e) => e.stopPropagation()}
                     >
                       {product.variants!.map((variant, idx) => (
                         <SelectItem 
                           key={idx} 
                           value={idx.toString()}
-                          className="text-xs"
+                          className="text-xs min-h-[36px] py-2 touch-manipulation"
                         >
                           {formatFlavour(safeDisplayValue(variant.FLAVOUR, 'No flavour'))}
                         </SelectItem>

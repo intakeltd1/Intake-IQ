@@ -138,10 +138,10 @@ export function PriceHistoryChart({ productUrl, compact = false }: PriceHistoryC
             <Line
               type="monotone"
               dataKey="price"
-              stroke={lineColor}
-              strokeWidth={2}
+              stroke="hsl(var(--primary))"
+              strokeWidth={2.5}
               dot={false}
-              activeDot={{ r: 4, fill: lineColor }}
+              activeDot={{ r: 4, fill: 'hsl(var(--primary))' }}
             />
           </LineChart>
         </ResponsiveContainer>
