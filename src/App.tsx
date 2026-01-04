@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { GlobalNavigation } from "@/components/GlobalNavigation";
@@ -12,10 +12,17 @@ import Index from "./pages/Index";
 import Electrolytes from "./pages/Electrolytes";
 import Auth from "./pages/Auth";
 import Favorites from "./pages/Favorites";
-import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+/* ✅ Layout with Nav */
+const AppLayout = () => (
+  <>
+    <GlobalNavigation />
+    <Outlet />
+  </>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -27,22 +34,15 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               {/* ROUTES WITH NAV */}
-              <Route
-                element={
-                  <>
-                    <GlobalNavigation />
-                    <Routes>
-                      <Route path="/" element={<LandingPage />} />
-                      <Route path="/protein" element={<Index />} />
-                      <Route path="/electrolytes" element={<Electrolytes />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/favorites" element={<Favorites />} />
-                    </Routes>
-                  </>
-                }
-              />
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/protein" element={<Index />} />
+                <Route path="/electrolytes" element={<Electrolytes />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/favorites" element={<Favorites />} />
+              </Route>
 
-              {/* 404 – NO NAV, CLEAN BRAND EXPERIENCE */}
+              {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
