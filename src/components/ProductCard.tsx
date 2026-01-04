@@ -358,9 +358,9 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
               </CardTitle>
             )}
 
-            {/* Flavour Section */}
+            {/* Flavour Section - HIGH Z-INDEX for mobile clickability */}
             <div 
-              className="relative z-[150] flex-shrink-0" 
+              className="relative z-[500] flex-shrink-0 isolate" 
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchEnd={(e) => e.stopPropagation()}
@@ -372,7 +372,8 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
                     onValueChange={handleVariantChange}
                   >
                     <SelectTrigger 
-                      className={`min-h-[32px] sm:min-h-[28px] h-auto text-[10px] sm:text-[9px] md:text-[10px] px-2 py-1.5 bg-background border-border/50 w-full touch-manipulation`}
+                      className="min-h-[44px] sm:min-h-[36px] h-auto text-[11px] sm:text-[10px] md:text-[11px] px-3 py-2 bg-background border-border w-full touch-manipulation cursor-pointer active:bg-accent"
+                      style={{ touchAction: 'manipulation' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -386,7 +387,7 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent 
-                      className="bg-background border-border z-[200] max-h-48"
+                      className="bg-background border-border z-[9999] max-h-64"
                       position="popper"
                       sideOffset={4}
                       onPointerDownOutside={(e) => e.stopPropagation()}
@@ -395,14 +396,15 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
                         <SelectItem 
                           key={idx} 
                           value={idx.toString()}
-                          className="text-xs min-h-[36px] py-2 touch-manipulation"
+                          className="text-sm min-h-[44px] py-3 touch-manipulation cursor-pointer"
+                          style={{ touchAction: 'manipulation' }}
                         >
                           {formatFlavour(safeDisplayValue(variant.FLAVOUR, 'No flavour'))}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="text-[7px] sm:text-[8px] text-muted-foreground whitespace-nowrap">
+                  <span className="text-[8px] sm:text-[9px] text-muted-foreground whitespace-nowrap">
                     +{product.variantCount! - 1}
                   </span>
                 </div>
@@ -492,9 +494,9 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
     <>
       <Card 
         ref={cardRef}
-        className={`h-[340px] sm:h-[380px] md:h-[420px] transition-all duration-300 group hover:shadow-card ${getBorderClass()} ${
-          outOfStock ? 'opacity-60 grayscale' : 'hover:scale-[1.02] hover:rounded-lg'
-        } flex flex-col relative overflow-hidden rounded-lg`}
+        className={`h-[340px] sm:h-[380px] md:h-[420px] transition-shadow duration-300 group hover:shadow-card ${getBorderClass()} ${
+          outOfStock ? 'opacity-60 grayscale' : ''
+        } flex flex-col relative overflow-hidden rounded-lg will-change-auto transform-gpu`}
       >
         {/* Right-side icon stack */}
         <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-[100] flex flex-col gap-1 sm:gap-1.5">

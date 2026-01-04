@@ -219,9 +219,9 @@ export function ElectrolyteProductCard({
     <>
       <Card 
         ref={cardRef}
-        className={`h-[380px] sm:h-[420px] md:h-[460px] transition-all duration-300 group hover:shadow-card ${getBorderClass()} ${
-          outOfStock ? 'opacity-60 grayscale' : 'hover:scale-[1.02]'
-        } flex flex-col relative overflow-hidden rounded-lg border bg-card`}
+        className={`h-[380px] sm:h-[420px] md:h-[460px] transition-shadow duration-300 group hover:shadow-card ${getBorderClass()} ${
+          outOfStock ? 'opacity-60 grayscale' : ''
+        } flex flex-col relative overflow-hidden rounded-lg border bg-card will-change-auto transform-gpu`}
       >
       {/* 
         3-ZONE CARD LAYOUT:
@@ -236,7 +236,7 @@ export function ElectrolyteProductCard({
           <img
             src={currentProduct.IMAGE_URL}
             alt={currentProduct.TITLE || "Product image"}
-            className={`w-full h-full object-cover object-center transition-transform duration-300 rounded-t-lg ${
+            className={`w-full h-full object-cover object-center rounded-t-lg ${
               outOfStock ? 'grayscale' : ''
             }`}
             loading="lazy"
@@ -255,8 +255,15 @@ export function ElectrolyteProductCard({
           </Badge>
         )}
 
-        {/* Special Product Badges */}
-        <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 flex flex-col gap-1">
+        {/* Format Badge - TOP LEFT */}
+        {currentProduct.FORMAT && (
+          <Badge variant="secondary" className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 text-[8px] sm:text-[9px]">
+            {currentProduct.FORMAT}
+          </Badge>
+        )}
+
+        {/* Value Badges - BELOW FORMAT */}
+        <div className="absolute top-7 left-1.5 sm:top-8 sm:left-2 flex flex-col gap-1">
           {isTopValueOfDay && !outOfStock && (
             <Badge className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-amber-900 font-bold shadow-xl animate-pulse flex items-center gap-1 border border-amber-300 text-[9px] sm:text-[10px]">
               <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -269,13 +276,6 @@ export function ElectrolyteProductCard({
             </Badge>
           )}
         </div>
-
-        {/* Format Badge */}
-        {currentProduct.FORMAT && (
-          <Badge variant="secondary" className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 text-[8px] sm:text-[9px]">
-            {currentProduct.FORMAT}
-          </Badge>
-        )}
 
         {/* Right-side icon stack */}
         <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-[100] flex flex-col gap-1 sm:gap-1.5">
@@ -364,9 +364,9 @@ export function ElectrolyteProductCard({
               </CardTitle>
             )}
 
-            {/* Flavour Section */}
+            {/* Flavour Section - HIGH Z-INDEX for mobile clickability */}
             <div 
-              className="relative z-[150] flex-shrink-0" 
+              className="relative z-[500] flex-shrink-0 isolate" 
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchEnd={(e) => e.stopPropagation()}
@@ -378,7 +378,8 @@ export function ElectrolyteProductCard({
                     onValueChange={handleVariantChange}
                   >
                     <SelectTrigger 
-                      className={`min-h-[32px] sm:min-h-[28px] h-auto text-[10px] sm:text-[9px] md:text-[10px] px-2 py-1.5 bg-background border-border/50 w-full touch-manipulation`}
+                      className="min-h-[44px] sm:min-h-[36px] h-auto text-[11px] sm:text-[10px] md:text-[11px] px-3 py-2 bg-background border-border w-full touch-manipulation cursor-pointer active:bg-accent"
+                      style={{ touchAction: 'manipulation' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -392,7 +393,7 @@ export function ElectrolyteProductCard({
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent 
-                      className="bg-background border-border z-[200] max-h-48"
+                      className="bg-background border-border z-[9999] max-h-64"
                       position="popper"
                       sideOffset={4}
                       onPointerDownOutside={(e) => e.stopPropagation()}
@@ -401,14 +402,15 @@ export function ElectrolyteProductCard({
                         <SelectItem 
                           key={idx} 
                           value={idx.toString()}
-                          className="text-xs min-h-[36px] py-2 touch-manipulation"
+                          className="text-sm min-h-[44px] py-3 touch-manipulation cursor-pointer"
+                          style={{ touchAction: 'manipulation' }}
                         >
                           {formatFlavour(safeDisplayValue(variant.FLAVOUR, 'No flavour'))}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="text-[7px] sm:text-[8px] text-muted-foreground whitespace-nowrap">
+                  <span className="text-[8px] sm:text-[9px] text-muted-foreground whitespace-nowrap">
                     +{variantCount - 1}
                   </span>
                 </div>
