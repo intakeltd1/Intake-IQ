@@ -447,7 +447,7 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
     <>
       <Card 
         ref={cardRef}
-        className={`h-[440px] sm:h-[495px] md:h-[545px] group ${getBorderClass()} ${
+        className={`h-[395px] sm:h-[440px] md:h-[480px] group ${getBorderClass()} ${
           outOfStock ? 'opacity-60 grayscale' : ''
         } flex flex-col relative overflow-hidden rounded-lg`}
       >
