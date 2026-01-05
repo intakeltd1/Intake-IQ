@@ -91,6 +91,10 @@ const normalizeFlavor = (flavor: string | undefined | null): string => {
 
 // Check if electrolyte product is out of stock
 const isElectrolyteOutOfStock = (product: ElectrolyteProduct): boolean => {
+  // Check boolean IN_STOCK field first (new format)
+  if (product.IN_STOCK === false) return true;
+  
+  // Fallback to STOCK_STATUS string check (legacy support)
   const stockStatus = (product.STOCK_STATUS || '').toLowerCase();
   return stockStatus.includes('out of stock') || 
          stockStatus.includes('unavailable') || 
