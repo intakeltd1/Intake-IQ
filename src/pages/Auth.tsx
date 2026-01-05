@@ -83,7 +83,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <img src="/intake-logo.png" alt="Intake" className="h-10 w-auto" />
+            <img src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" alt="Intake IQ" className="h-10 w-auto" />
           </div>
           <CardTitle className="text-xl">Sign in to Intake IQ</CardTitle>
           <CardDescription>Save your favorite products and get price alerts</CardDescription>
