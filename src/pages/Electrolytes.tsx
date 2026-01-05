@@ -67,7 +67,10 @@ export default function Electrolytes() {
         const response = await fetch('https://intake-collection-data.web.app/electrolytes/master_electrolytes.json');
         if (!response.ok) throw new Error(`Failed to load products: ${response.status}`);
 
-        const parsed = await response.json();
+        // Parse as text first to handle NaN values (invalid JSON but produced by Python)
+        const text = await response.text();
+        const sanitizedText = text.replace(/:\s*NaN\b/g, ': null');
+        const parsed = JSON.parse(sanitizedText);
         
         let items: ElectrolyteProduct[] = [];
         let metaDate: string | undefined;
