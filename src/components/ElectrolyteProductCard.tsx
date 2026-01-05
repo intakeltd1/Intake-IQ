@@ -77,6 +77,12 @@ const safeDisplayValue = (value: any, fallback: string = 'N/A'): string => {
   return String(value);
 };
 
+// Helper to safely get numeric values (handles NaN from JSON)
+const safeNumber = (value: number | undefined | null): number => {
+  if (value === undefined || value === null || Number.isNaN(value)) return 0;
+  return value;
+};
+
 export function ElectrolyteProductCard({ 
   product, 
   isSubscription,
@@ -194,8 +200,8 @@ export function ElectrolyteProductCard({
     return 'border-border';
   };
 
-  // Calculate total electrolytes
-  const totalElectrolytes = (currentProduct.SODIUM_MG ?? 0) + (currentProduct.POTASSIUM_MG ?? 0) + (currentProduct.MAGNESIUM_MG ?? 0);
+  // Calculate total electrolytes (using safeNumber to handle NaN values)
+  const totalElectrolytes = safeNumber(currentProduct.SODIUM_MG) + safeNumber(currentProduct.POTASSIUM_MG) + safeNumber(currentProduct.MAGNESIUM_MG);
 
   // Format price display
   const formatPrice = (price: number | null) => {
@@ -245,7 +251,7 @@ export function ElectrolyteProductCard({
           {/* Format Badge - TOP LEFT */}
           {currentProduct.FORMAT && (
             <Badge variant="secondary" className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 text-[8px] sm:text-[9px]">
-              {currentProduct.FORMAT}
+              {toTitleCase(currentProduct.FORMAT.toLowerCase())}
             </Badge>
           )}
 
@@ -448,19 +454,19 @@ export function ElectrolyteProductCard({
                 <div className="text-center">
                   <p className="text-[7px] sm:text-[8px] text-muted-foreground">Na</p>
                   <p className="text-[9px] sm:text-[10px] font-semibold text-foreground tabular-nums">
-                    {currentProduct.SODIUM_MG ? `${Math.round(currentProduct.SODIUM_MG)}` : '-'}
+                    {safeNumber(currentProduct.SODIUM_MG) > 0 ? `${Math.round(safeNumber(currentProduct.SODIUM_MG))}` : '-'}
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-[7px] sm:text-[8px] text-muted-foreground">K</p>
                   <p className="text-[9px] sm:text-[10px] font-semibold text-foreground tabular-nums">
-                    {currentProduct.POTASSIUM_MG ? `${Math.round(currentProduct.POTASSIUM_MG)}` : '-'}
+                    {safeNumber(currentProduct.POTASSIUM_MG) > 0 ? `${Math.round(safeNumber(currentProduct.POTASSIUM_MG))}` : '-'}
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-[7px] sm:text-[8px] text-muted-foreground">Mg</p>
                   <p className="text-[9px] sm:text-[10px] font-semibold text-foreground tabular-nums">
-                    {currentProduct.MAGNESIUM_MG ? `${Math.round(currentProduct.MAGNESIUM_MG)}` : '-'}
+                    {safeNumber(currentProduct.MAGNESIUM_MG) > 0 ? `${Math.round(safeNumber(currentProduct.MAGNESIUM_MG))}` : '-'}
                   </p>
                 </div>
               </div>
