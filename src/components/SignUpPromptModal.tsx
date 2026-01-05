@@ -20,7 +20,6 @@ import {
   Star
 } from 'lucide-react';
 import { z } from 'zod';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 
@@ -158,144 +157,110 @@ export function SignUpPromptModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden border-2 border-primary/20 bg-gradient-to-b from-background to-card">
-        <AnimatePresence mode="wait">
-          {sent ? (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="p-8 text-center"
-            >
-              <motion.div 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-                className="mx-auto mb-6 w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30"
-              >
-                <CheckCircle className="h-8 w-8 text-white" />
-              </motion.div>
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden border-2 border-primary/20 bg-gradient-to-b from-background to-card animate-fade-in">
+        {sent ? (
+          <div className="p-8 text-center animate-fade-in">
+            <div className="mx-auto mb-6 w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
+              <CheckCircle className="h-8 w-8 text-white" />
+            </div>
+            <DialogHeader>
+              <DialogTitle className="text-2xl">Check your email!</DialogTitle>
+            </DialogHeader>
+            <p className="text-muted-foreground mt-3">
+              We've sent a magic link to <span className="font-semibold text-foreground">{email}</span>
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Click the link to start saving your favorites and getting price alerts.
+            </p>
+            <Button variant="outline" className="mt-6" onClick={handleClose}>
+              Close
+            </Button>
+          </div>
+        ) : (
+          <div className="animate-fade-in">
+            {/* Header with gradient */}
+            <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-primary/10 to-transparent">
+              <div className="mx-auto mb-4">
+                <img 
+                  src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
+                  alt="Intake IQ Logo" 
+                  className="h-10 mx-auto filter drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]"
+                />
+              </div>
               <DialogHeader>
-                <DialogTitle className="text-2xl">Check your email!</DialogTitle>
+                <DialogTitle className="text-2xl font-bold">
+                  Unlock Premium Features
+                </DialogTitle>
               </DialogHeader>
-              <p className="text-muted-foreground mt-3">
-                We've sent a magic link to <span className="font-semibold text-foreground">{email}</span>
+              <p className="text-muted-foreground mt-2 text-sm">
+                Join thousands of smart supplement shoppers
               </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Click the link to start saving your favorites and getting price alerts.
-              </p>
-              <Button variant="outline" className="mt-6" onClick={handleClose}>
-                Close
-              </Button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {/* Header with gradient */}
-              <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-primary/10 to-transparent">
-                <motion.div 
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-                  className="mx-auto mb-4"
-                >
-                  <img 
-                    src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
-                    alt="Intake IQ Logo" 
-                    className="h-10 mx-auto filter drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]"
-                  />
-                </motion.div>
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold">
-                    Unlock Premium Features
-                  </DialogTitle>
-                </DialogHeader>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  Join thousands of smart supplement shoppers
-                </p>
-              </div>
+            </div>
 
-              {/* Benefits grid */}
-              <div className="px-6 py-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {benefits.map((benefit, index) => (
-                    <motion.div
-                      key={benefit.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.15 + index * 0.1 }}
-                      className="relative p-3 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-colors group"
-                    >
-                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${benefit.color} flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform`}>
-                        <benefit.icon className="h-4 w-4 text-white" />
-                      </div>
-                      <h4 className="font-semibold text-sm text-foreground">{benefit.title}</h4>
-                      <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{benefit.description}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Email form */}
-              <motion.form 
-                onSubmit={handleSubmit} 
-                className="px-6 pb-6 space-y-4"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 h-12 text-base bg-background/50 border-border/50 focus:border-primary"
-                      disabled={loading}
-                    />
+            {/* Benefits grid */}
+            <div className="px-6 py-4">
+              <div className="grid grid-cols-2 gap-3">
+                {benefits.map((benefit) => (
+                  <div
+                    key={benefit.title}
+                    className="relative p-3 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-colors group"
+                  >
+                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${benefit.color} flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform`}>
+                      <benefit.icon className="h-4 w-4 text-white" />
+                    </div>
+                    <h4 className="font-semibold text-sm text-foreground">{benefit.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{benefit.description}</p>
                   </div>
-                  {error && (
-                    <motion.p 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="text-sm text-destructive"
-                    >
-                      {error}
-                    </motion.p>
-                  )}
+                ))}
+              </div>
+            </div>
+
+            {/* Email form */}
+            <form 
+              onSubmit={handleSubmit} 
+              className="px-6 pb-6 space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 h-12 text-base bg-background/50 border-border/50 focus:border-primary"
+                    disabled={loading}
+                  />
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-600 transition-all" 
-                  disabled={loading || !email}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      Get Started Free
-                      <ChartLine className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  No password needed—we'll email you a secure link
-                </p>
-              </motion.form>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {error && (
+                  <p className="text-sm text-destructive">
+                    {error}
+                  </p>
+                )}
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-600 transition-all" 
+                disabled={loading || !email}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    Get Started Free
+                    <ChartLine className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                No password needed—we'll email you a secure link
+              </p>
+            </form>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
