@@ -148,7 +148,7 @@ const LandingPage = () => {
                 className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl lg:rounded-2xl p-4 sm:p-6 lg:p-7"
               >
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground text-center mb-4 sm:mb-5 lg:mb-6">
-                  How Intake Value Works
+                  How Intake Value Works:
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
                   <div className="text-center">
