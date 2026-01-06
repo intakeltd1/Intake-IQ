@@ -38,7 +38,6 @@ const LandingPage = () => {
         <source src="/background-video.mp4" type="video/mp4" />
       </video>
 
-
       {/* Floating Accent Orbs */}
       <div className="fixed inset-0 z-[2] pointer-events-none overflow-hidden">
         {/* Large primary orb - top right */}
@@ -106,9 +105,9 @@ const LandingPage = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="flex items-center justify-between p-4 sm:p-6">
+        <header className="flex items-center justify-between p-3 sm:p-4 lg:p-6">
           <div className="flex items-center gap-3">
             <img
               src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png"
@@ -117,99 +116,103 @@ const LandingPage = () => {
               style={{ filter: 'drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px rgba(255,255,255,0.7))' }}
             />
           </div>
-          
         </header>
 
-        {/* Hero Section */}
-        <section className="px-4 sm:px-6 pt-8 sm:pt-16 pb-12 sm:pb-20 text-center max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 sm:mb-6">
-              Smart Supplement
-              <span className="text-primary block mt-1">Comparison</span>
-            </h1>
-            <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8">
-              Compare supplements by real value — not just price. Our Intake Value
-              algorithm helps you find the best nutrition per pound spent.
-            </p>
-          </motion.div>
-        </section>
+        {/* Main Content - Centered on desktop */}
+        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 py-6 sm:py-8 lg:py-0">
+          <div className="max-w-6xl mx-auto w-full">
+            {/* Hero Section */}
+            <section className="text-center mb-6 sm:mb-8 lg:mb-10">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-3 sm:mb-4 lg:mb-5">
+                  Smart Supplement
+                  <span className="text-primary block mt-1">Comparison</span>
+                </h1>
+                <p className="text-muted-foreground text-sm sm:text-base lg:text-lg max-w-2xl mx-auto mb-4 sm:mb-6">
+                  Compare supplements by real value — not just price. Our Intake Value
+                  algorithm helps you find the best nutrition per pound spent.
+                </p>
+              </motion.div>
+            </section>
 
-        {/* Categories Grid */}
-        <section className="px-4 sm:px-6 pb-16 sm:pb-24 max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <h2 className="text-xl sm:text-2xl font-semibold text-foreground text-center mb-8">
-              Choose a Category
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              {categories.map((category, index) => (
-                <CategoryCard
-                  key={category.title}
-                  title={category.title}
-                  description={category.description}
-                  icon={category.icon}
-                  href={category.href}
-                  available={category.available}
-                  delay={index * 0.1}
-                  image={category.image}
-                />
-              ))}
-            </div>
-          </motion.div>
-        </section>
+            {/* How It Works - MOVED BEFORE CATEGORIES */}
+            <section className="mb-6 sm:mb-8 lg:mb-10">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl lg:rounded-2xl p-4 sm:p-6 lg:p-7"
+              >
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground text-center mb-4 sm:mb-5 lg:mb-6">
+                  How Intake Value Works
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+                  <div className="text-center">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                      <span className="text-primary font-bold text-base sm:text-lg">1</span>
+                    </div>
+                    <h3 className="font-medium text-foreground mb-1.5 sm:mb-2 text-sm sm:text-base">Analyse</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
+                      We scan prices and nutrition data across major UK retailers
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                      <span className="text-primary font-bold text-base sm:text-lg">2</span>
+                    </div>
+                    <h3 className="font-medium text-foreground mb-1.5 sm:mb-2 text-sm sm:text-base">Calculate</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
+                      Our algorithm weighs protein content, serving size, and price
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                      <span className="text-primary font-bold text-base sm:text-lg">3</span>
+                    </div>
+                    <h3 className="font-medium text-foreground mb-1.5 sm:mb-2 text-sm sm:text-base">Compare</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
+                      See rankings and find the best value for your goals
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </section>
 
-        {/* How It Works */}
-        <section className="px-4 sm:px-6 pb-16 sm:pb-24 max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 sm:p-8"
-          >
-            <h2 className="text-xl sm:text-2xl font-semibold text-foreground text-center mb-6">
-              How Intake Value Works
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-primary font-bold text-lg">1</span>
+            {/* Categories Grid - NOW AFTER "HOW IT WORKS" */}
+            <section>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground text-center mb-4 sm:mb-5 lg:mb-6">
+                  Choose a Category
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-5 max-w-4xl mx-auto">
+                  {categories.map((category, index) => (
+                    <CategoryCard
+                      key={category.title}
+                      title={category.title}
+                      description={category.description}
+                      icon={category.icon}
+                      href={category.href}
+                      available={category.available}
+                      delay={index * 0.1}
+                      image={category.image}
+                    />
+                  ))}
                 </div>
-                <h3 className="font-medium text-foreground mb-2">Analyse</h3>
-                <p className="text-sm text-muted-foreground">
-                  We scan prices and nutrition data across major UK retailers
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-primary font-bold text-lg">2</span>
-                </div>
-                <h3 className="font-medium text-foreground mb-2">Calculate</h3>
-                <p className="text-sm text-muted-foreground">
-                  Our algorithm weighs protein content, serving size, and price
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-primary font-bold text-lg">3</span>
-                </div>
-                <h3 className="font-medium text-foreground mb-2">Compare</h3>
-                <p className="text-sm text-muted-foreground">
-                  See rankings and find the best value for your goals
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </section>
+              </motion.div>
+            </section>
+          </div>
+        </div>
 
         {/* Footer */}
-        <footer className="px-4 sm:px-6 pb-8 text-center">
+        <footer className="px-4 sm:px-6 py-4 sm:py-6 lg:py-8 text-center mt-auto">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Intake Ltd. All rights reserved.
           </p>
