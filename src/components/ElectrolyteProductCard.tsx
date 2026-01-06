@@ -194,10 +194,10 @@ export function ElectrolyteProductCard({
   };
 
   const getBorderClass = () => {
-    if (outOfStock) return 'border-border/20';
+    if (outOfStock) return 'border border-border/20';
     if (isTopValueOfDay) return 'border-2 border-amber-400';
     if (isTopValue) return 'border border-primary/50';
-    return 'border-border';
+    return 'border border-border';
   };
 
   // Calculate total electrolytes (using safeNumber to handle NaN values)
@@ -221,7 +221,7 @@ export function ElectrolyteProductCard({
         ref={cardRef}
         className={`h-[440px] sm:h-[480px] md:h-[525px] group ${getBorderClass()} ${
           outOfStock ? 'opacity-60 grayscale' : ''
-        } flex flex-col relative overflow-hidden rounded-lg border bg-card`}
+        } flex flex-col relative overflow-hidden rounded-lg`}
       >
         {/* ZONE 1: Product Image - Fixed height */}
         <div className="relative w-full h-[160px] sm:h-[180px] md:h-[200px] overflow-hidden rounded-t-lg bg-white flex-shrink-0">
