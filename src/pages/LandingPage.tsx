@@ -166,7 +166,7 @@ const LandingPage = () => {
                     </div>
                     <h3 className="font-medium text-foreground mb-1.5 sm:mb-2 text-sm sm:text-base">Calculate</h3>
                     <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
-                      Our algorithm weighs protein content, serving size, and price
+                      Our algorithm weighs protein or electrolyte content, serving size, and price
                     </p>
                   </div>
                   <div className="text-center">
