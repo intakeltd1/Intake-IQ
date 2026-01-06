@@ -37,7 +37,7 @@ export default function Electrolytes() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [debouncedQuery] = useDebounce(query, 300);
-  const [isSubscription, setIsSubscription] = useState(true);
+  const [isSubscription, setIsSubscription] = useState(false);
   const [sortBy, setSortBy] = useState('value');
   const [formatFilter, setFormatFilter] = useState('all');
   const [displayedCount, setDisplayedCount] = useState(28);
