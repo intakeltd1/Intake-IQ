@@ -463,21 +463,34 @@ export default function Electrolytes() {
                   const productUrl = product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}`;
                   const isTopValueOfDay = topValueOfDayUrl === productUrl;
                   const isBestValue = bestValueProductUrls.has(productUrl);
-                  
+
                   return (
                     <div 
                       key={`top-${index}`}
                       className="staggered-fade-in"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <ElectrolyteProductCard
-                        product={product}
-                        isSubscription={isSubscription}
-                        benchmarks={benchmarks}
-                        rankings={rankings}
-                        isTopValue={isBestValue}
-                        isTopValueOfDay={isTopValueOfDay}
-                      />
+                      {(isBestValue || isTopValueOfDay) ? (
+                        <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
+                          <ElectrolyteProductCard
+                            product={product}
+                            isSubscription={isSubscription}
+                            benchmarks={benchmarks}
+                            rankings={rankings}
+                            isTopValue={isBestValue}
+                            isTopValueOfDay={isTopValueOfDay}
+                          />
+                        </div>
+                      ) : (
+                        <ElectrolyteProductCard
+                          product={product}
+                          isSubscription={isSubscription}
+                          benchmarks={benchmarks}
+                          rankings={rankings}
+                          isTopValue={isBestValue}
+                          isTopValueOfDay={isTopValueOfDay}
+                        />
+                      )}
                     </div>
                   );
                 })}
@@ -495,21 +508,34 @@ export default function Electrolytes() {
                   const productUrl = product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}`;
                   const isTopValueOfDay = topValueOfDayUrl === productUrl;
                   const isBestValue = bestValueProductUrls.has(productUrl);
-                  
+
                   return (
                     <div 
                       key={`${productUrl}-${index}`}
                       className="staggered-fade-in"
                       style={{ animationDelay: `${Math.min(index, 20) * 40}ms` }}
                     >
-                      <ElectrolyteProductCard
-                        product={product}
-                        isSubscription={isSubscription}
-                        benchmarks={benchmarks}
-                        rankings={rankings}
-                        isTopValue={isBestValue}
-                        isTopValueOfDay={isTopValueOfDay}
-                      />
+                      {(isBestValue || isTopValueOfDay) ? (
+                        <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
+                          <ElectrolyteProductCard
+                            product={product}
+                            isSubscription={isSubscription}
+                            benchmarks={benchmarks}
+                            rankings={rankings}
+                            isTopValue={isBestValue}
+                            isTopValueOfDay={isTopValueOfDay}
+                          />
+                        </div>
+                      ) : (
+                        <ElectrolyteProductCard
+                          product={product}
+                          isSubscription={isSubscription}
+                          benchmarks={benchmarks}
+                          rankings={rankings}
+                          isTopValue={isBestValue}
+                          isTopValueOfDay={isTopValueOfDay}
+                        />
+                      )}
                     </div>
                   );
                 })}
