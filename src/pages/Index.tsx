@@ -505,7 +505,7 @@ useEffect(() => {
         <div className="relative z-10">
 
           {/* Best Value Products - Price/Protein Ratio - Only show when no search criteria */}
-          {bestValueProducts.length > 0 && !hasSearchCriteria && (
+          {false && bestValueProducts.length > 0 && !hasSearchCriteria && (
             <div className="container mx-auto px-2 md:px-4 pb-6 transition-all duration-300 animate-fade-in">
               <div className="featured-products-container rounded-xl p-3 md:p-4 bg-background/5 backdrop-blur-sm">
                 <h2 className="text-lg md:text-xl font-bold text-center mb-3 md:mb-4 text-foreground drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
