@@ -1,7 +1,7 @@
-// Intake Value Rating Algorithm
+// Intake Value Rating Algorithm - IMPROVED
 // RANK-BASED scoring: distributes scores across full 5.0-10.0 range
-// Best product = 10.0, worst = 5.0, all others distributed by percentile rank
-// Weights: 55% Servings/£, 38.3% Protein/£, 6.7% Discount %
+// Only ONE product can score 10.0 (ties broken by secondary factors)
+// Weights: 50% Protein/£, 45% Servings/£, 5% Discount %
 
 import { isValidServings, parseGrams } from '@/utils/productUtils';
 
@@ -13,6 +13,8 @@ interface Product {
   AMOUNT?: string;
   URL?: string;
   LINK?: string;
+  TITLE?: string;
+  FLAVOUR?: string;
   [key: string]: any;
 }
 
@@ -47,6 +49,21 @@ const parseServings = (servings?: string): number | null => {
   return isNaN(value) || value <= 0 ? null : value;
 };
 
+// SMART FALLBACK: Estimate servings from AMOUNT when SERVINGS is missing
+const estimateServingsFromAmount = (amountGrams: number | null): number | null => {
+  if (!amountGrams || amountGrams <= 0) return null;
+  
+  // Industry standard serving size is ~30g
+  // This gives realistic estimates:
+  // 500g → 16.7 servings
+  // 1kg → 33.3 servings
+  // 2.5kg → 83.3 servings
+  // 5kg → 166.7 servings
+  const STANDARD_SERVING_SIZE_GRAMS = 30;
+  
+  return amountGrams / STANDARD_SERVING_SIZE_GRAMS;
+};
+
 // Parse protein from string
 const parseProtein = (protein?: string): number | null => {
   if (!protein) return null;
@@ -72,16 +89,23 @@ const calculateRawMetrics = (product: Product) => {
   const protein = parseProtein(product.PROTEIN_SERVING);
   const discountPercent = calculateDiscountPercent(product.PRICE, product.RRP);
   
-  // Parse AMOUNT as fallback when SERVINGS is invalid
+  // Parse AMOUNT for fallback calculations
   const amountGrams = parseGrams(product.AMOUNT);
+  
+  // SMART FALLBACK: If SERVINGS is missing/invalid, estimate from AMOUNT
+  const effectiveServings = servings !== null 
+    ? servings 
+    : estimateServingsFromAmount(amountGrams);
   
   return {
     proteinPerPound: price && protein ? protein / price : null,
-    servingsPerPound: price && servings ? servings / price : null,
+    servingsPerPound: price && effectiveServings ? effectiveServings / price : null,
     amountPerPound: price && amountGrams ? amountGrams / price : null,
     discountPercent,
     hasValidServings: servings !== null,
-    hasValidAmount: amountGrams !== null
+    hasValidAmount: amountGrams !== null,
+    usedEstimatedServings: servings === null && effectiveServings !== null,
+    price: price
   };
 };
 
@@ -147,49 +171,46 @@ const normalize = (value: number, min: number, max: number): number => {
  * Calculate raw weighted score for a product (internal use)
  * Returns { score, hasMissingData } to track data quality
  * 
- * Now supports AMOUNT fallback: if SERVINGS is invalid, uses AMOUNT (grams/£) instead
+ * NEW WEIGHTS: 50% Protein/£, 45% Servings/£, 5% Discount
+ * SMART FALLBACK: Estimates servings from amount (grams ÷ 30) when servings missing
  */
 function calculateRawWeightedScore(
   product: Product,
   benchmarks: DatasetBenchmarks
-): { score: number; hasMissingData: boolean } | null {
+): { score: number; hasMissingData: boolean; proteinPerPound: number | null; price: number | null } | null {
   const price = parsePrice(product.PRICE);
   if (!price) return null; // Products without price cannot be scored
   
   const metrics = calculateRawMetrics(product);
   
   // Track if product has missing essential data
-  // Now acceptable if EITHER servings OR amount is available
-  const hasMissingData = metrics.proteinPerPound === null || 
-    (metrics.servingsPerPound === null && metrics.amountPerPound === null);
+  // Now more lenient: only flag as missing if we can't get servings at all (even via estimation)
+  const hasMissingData = metrics.proteinPerPound === null || metrics.servingsPerPound === null;
   
   // Normalize protein per £1 (penalize missing data with 0.15)
   const normalizedProtein = metrics.proteinPerPound !== null
     ? normalize(metrics.proteinPerPound, benchmarks.minProteinPerPound, benchmarks.maxProteinPerPound)
     : 0.15;
   
-  // Normalize servings per £1, OR fallback to amount per £1
-  let normalizedServingsOrAmount: number;
-  if (metrics.servingsPerPound !== null) {
-    // Primary: use servings
-    normalizedServingsOrAmount = normalize(metrics.servingsPerPound, benchmarks.minServingsPerPound, benchmarks.maxServingsPerPound);
-  } else if (metrics.amountPerPound !== null) {
-    // Fallback: use amount (grams per £)
-    normalizedServingsOrAmount = normalize(metrics.amountPerPound, benchmarks.minAmountPerPound, benchmarks.maxAmountPerPound);
-  } else {
-    // Neither available - penalize
-    normalizedServingsOrAmount = 0.15;
-  }
+  // Normalize servings per £1 (now includes estimated servings from amount)
+  const normalizedServings = metrics.servingsPerPound !== null
+    ? normalize(metrics.servingsPerPound, benchmarks.minServingsPerPound, benchmarks.maxServingsPerPound)
+    : 0.15;
   
   // Normalize discount %
   const normalizedDiscount = benchmarks.maxDiscountPercent > 0
     ? normalize(metrics.discountPercent, benchmarks.minDiscountPercent, benchmarks.maxDiscountPercent)
     : 0;
   
-  // Weighted average (38.3% protein, 55% servings/amount, 6.7% discount)
-  const score = (normalizedProtein * 0.383) + (normalizedServingsOrAmount * 0.55) + (normalizedDiscount * 0.067);
+  // NEW WEIGHTS: 50% protein, 45% servings, 5% discount
+  const score = (normalizedProtein * 0.50) + (normalizedServings * 0.45) + (normalizedDiscount * 0.05);
   
-  return { score, hasMissingData };
+  return { 
+    score, 
+    hasMissingData,
+    proteinPerPound: metrics.proteinPerPound,
+    price: metrics.price
+  };
 }
 
 // Get unique identifier for a product
@@ -204,7 +225,6 @@ export interface ScoreRange {
 
 /**
  * DEPRECATED: Use calculateProductRankings instead
- * Kept for backward compatibility
  */
 export function calculateScoreRange(
   products: Product[],
@@ -221,7 +241,6 @@ export function calculateScoreRange(
     }
   }
   
-  // Handle edge cases
   if (minScore === Infinity) minScore = 0;
   if (maxScore === -Infinity) maxScore = 1;
   if (minScore === maxScore) maxScore = minScore + 0.01;
@@ -230,22 +249,29 @@ export function calculateScoreRange(
 }
 
 export interface ProductRankings {
-  rankMap: Map<string, number>;       // productKey -> rank (1 = best)
-  totalRankedProducts: number;        // Total products with valid scores
-  rawScores: Map<string, number>;     // productKey -> raw score (for debugging)
-  hasMissingDataMap: Map<string, boolean>; // productKey -> whether product has missing data
+  rankMap: Map<string, number>;
+  totalRankedProducts: number;
+  rawScores: Map<string, number>;
+  hasMissingDataMap: Map<string, boolean>;
 }
 
 /**
  * Calculate rank-based scores for all products
- * This ensures the full 5.0-10.0 range is utilized based on percentile ranking
+ * IMPROVED: Breaks ties to ensure only ONE product gets 10.0
+ * Tie-breaking order: Higher protein/£ wins, then lower price
  */
 export function calculateProductRankings(
   products: Product[],
   benchmarks: DatasetBenchmarks
 ): ProductRankings {
   // Calculate raw scores for all products
-  const scoredProducts: { key: string; score: number; hasMissingData: boolean }[] = [];
+  const scoredProducts: { 
+    key: string; 
+    score: number; 
+    hasMissingData: boolean;
+    proteinPerPound: number | null;
+    price: number | null;
+  }[] = [];
   const rawScores = new Map<string, number>();
   const hasMissingDataMap = new Map<string, boolean>();
   
@@ -253,36 +279,45 @@ export function calculateProductRankings(
     const result = calculateRawWeightedScore(product, benchmarks);
     if (result !== null) {
       const key = getProductKey(product);
-      scoredProducts.push({ key, score: result.score, hasMissingData: result.hasMissingData });
+      scoredProducts.push({ 
+        key, 
+        score: result.score, 
+        hasMissingData: result.hasMissingData,
+        proteinPerPound: result.proteinPerPound,
+        price: result.price
+      });
       rawScores.set(key, result.score);
       hasMissingDataMap.set(key, result.hasMissingData);
     }
   }
   
-  // Sort by score descending (best first)
-  scoredProducts.sort((a, b) => b.score - a.score);
-  
-  // Assign ranks (handling ties - products with same score get same rank)
-  const rankMap = new Map<string, number>();
-  let currentRank = 1;
-  let previousScore: number | null = null;
-  let sameRankCount = 0;
-  
-  for (let i = 0; i < scoredProducts.length; i++) {
-    const { key, score } = scoredProducts[i];
-    
-    if (previousScore !== null && Math.abs(score - previousScore) < 0.0001) {
-      // Same score as previous - assign same rank
-      rankMap.set(key, currentRank);
-      sameRankCount++;
-    } else {
-      // New score - advance rank by count of tied products
-      currentRank = currentRank + sameRankCount;
-      rankMap.set(key, currentRank);
-      sameRankCount = 1;
+  // Sort with tie-breaking:
+  // 1. Higher score wins
+  // 2. If tied, higher protein per £ wins
+  // 3. If still tied, lower price wins
+  scoredProducts.sort((a, b) => {
+    // Primary: score (descending)
+    if (Math.abs(b.score - a.score) >= 0.0001) {
+      return b.score - a.score;
     }
     
-    previousScore = score;
+    // Tie-breaker 1: protein per £ (descending)
+    const aProtein = a.proteinPerPound ?? 0;
+    const bProtein = b.proteinPerPound ?? 0;
+    if (Math.abs(bProtein - aProtein) >= 0.01) {
+      return bProtein - aProtein;
+    }
+    
+    // Tie-breaker 2: price (ascending - lower is better)
+    const aPrice = a.price ?? Infinity;
+    const bPrice = b.price ?? Infinity;
+    return aPrice - bPrice;
+  });
+  
+  // Assign sequential ranks (no ties now!)
+  const rankMap = new Map<string, number>();
+  for (let i = 0; i < scoredProducts.length; i++) {
+    rankMap.set(scoredProducts[i].key, i + 1);
   }
   
   return {
@@ -295,12 +330,11 @@ export function calculateProductRankings(
 
 /**
  * Calculate Intake Value Rating using RANK-BASED scoring (5.0-10.0 scale)
- * Best product = 10.0, Worst product = 5.0
- * All products distributed by percentile rank across this range
+ * GUARANTEED: Only ONE product can score 10.0 (ties broken by protein/£ then price)
  * 
  * @param product - Product to evaluate
  * @param benchmarks - Dataset benchmarks for normalization
- * @param scoreRange - DEPRECATED: kept for backward compatibility, ignored if rankings provided
+ * @param scoreRange - DEPRECATED: kept for backward compatibility
  * @param rankings - Rank-based scoring data (preferred method)
  * @returns Value rating from 5.0-10.0
  */
@@ -312,43 +346,38 @@ export function calculateIntakeValueRating(
 ): number | null {
   if (!benchmarks) return null;
   
-  // Check if price is missing - products without price cannot be scored
+  // Check if price is missing
   const price = product.PRICE?.replace(/[^\d.]/g, '');
   const priceVal = price ? parseFloat(price) : null;
   if (!priceVal || priceVal <= 0) {
-    return null; // No rating for products without valid price
+    return null;
   }
   
   // Use rank-based scoring if rankings are provided
   if (rankings && rankings.totalRankedProducts > 0) {
-    const key = product.URL || product.LINK || `${product.TITLE}-${product.FLAVOUR}-${product.PRICE}`;
+    const key = getProductKey(product);
     const rank = rankings.rankMap.get(key);
     
     if (rank === undefined) {
-      // Product not in rankings
       return null;
     }
     
-    // Check if product has missing data (protein or servings)
     const hasMissingData = rankings.hasMissingDataMap.get(key) ?? false;
     
     // Convert rank to 5.0-10.0 scale
-    // Rank 1 (best) -> 10.0
-    // Last rank (worst) -> 5.0
     const totalProducts = rankings.totalRankedProducts;
     
     let finalScore: number;
     if (totalProducts === 1) {
-      finalScore = 10.0; // Only one product = best
+      finalScore = 10.0;
     } else {
-      // Percentile position: 0 = worst, 1 = best
+      // Rank is 1-based, so rank 1 = best
+      // percentile: 0 = worst rank, 1 = best rank
       const percentile = (totalProducts - rank) / (totalProducts - 1);
-      
-      // Scale to 5.0-10.0 range
       finalScore = 5.0 + (percentile * 5.0);
     }
     
-    // CAP: Products with missing price/protein/servings data cannot score above 5.1
+    // CAP: Products with missing data cannot score above 5.1
     if (hasMissingData && finalScore > 5.1) {
       finalScore = 5.1;
     }
@@ -356,7 +385,7 @@ export function calculateIntakeValueRating(
     return Math.round(finalScore * 10) / 10;
   }
   
-  // Fallback to old linear scaling (deprecated path)
+  // Fallback to old method
   const rawResult = calculateRawWeightedScore(product, benchmarks);
   if (rawResult === null) return null;
   
@@ -368,7 +397,6 @@ export function calculateIntakeValueRating(
     finalScore = 5.0 + (normalizedScore * 5.0);
   }
   
-  // CAP: Products with missing data cannot score above 5.1
   if (rawResult.hasMissingData && finalScore > 5.1) {
     finalScore = 5.1;
   }
@@ -378,13 +406,13 @@ export function calculateIntakeValueRating(
 
 /**
  * Get color class for value rating (5.0-10.0 scale)
- * All products shown positively: Gray → Amber → Green → Purple (Excellent!)
+ * Purple = Excellent (9.5+), Green = Great (7+), Amber = Good (6+), Gray = Average
  */
 export function getValueRatingColor(rating: number): string {
-  if (rating >= 9.5) return 'from-purple-500 via-violet-500 to-purple-600'; // Excellent (top ~10%)
-  if (rating >= 7) return 'from-lime-400 to-green-400'; // Great
-  if (rating >= 6) return 'from-amber-300 to-yellow-400'; // Good
-  return 'from-gray-300 to-slate-300'; // Average (5.0-5.9)
+  if (rating >= 9.5) return 'from-purple-500 via-violet-500 to-purple-600';
+  if (rating >= 7) return 'from-lime-400 to-green-400';
+  if (rating >= 6) return 'from-amber-300 to-yellow-400';
+  return 'from-gray-300 to-slate-300';
 }
 
 /**
@@ -395,4 +423,24 @@ export function getValueRatingLabel(rating: number): string {
   if (rating >= 7) return 'Great';
   if (rating >= 6) return 'Good';
   return 'Average';
+}
+
+/**
+ * Get detailed explanation of Intake Value score
+ * NEW: Helps users understand what the rating means
+ */
+export function getValueRatingExplanation(rating: number): string {
+  if (rating >= 9.5) {
+    return 'Outstanding value - among the best protein per pound in the market';
+  }
+  if (rating >= 7) {
+    return 'Great value - significantly better than average';
+  }
+  if (rating >= 6) {
+    return 'Good value - solid choice for your money';
+  }
+  if (rating >= 5.5) {
+    return 'Fair value - average market pricing';
+  }
+  return 'Below average value - consider alternatives';
 }
