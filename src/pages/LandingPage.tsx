@@ -14,9 +14,18 @@ const LandingPage = () => {
         muted
         loop
         playsInline
+        preload="auto"
         className="fixed inset-0 w-full h-full object-cover z-0 opacity-20"
+        onLoadedData={(e) => {
+          // Force play on mobile
+          const video = e.currentTarget;
+          video.play().catch(() => {
+            // Silently fail if autoplay blocked
+          });
+        }}
       >
         <source src="/background-video.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
       </video>
 
       {/* Enhanced Animated Gradient Mesh */}
