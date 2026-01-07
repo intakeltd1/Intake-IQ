@@ -31,6 +31,11 @@ import {
   GroupedElectrolyteProduct 
 } from "@/utils/electrolyteProductUtils";
 
+// FIXED: Use same key generation as rankings to ensure badges match correctly
+function getProductKey(product: GroupedElectrolyteProduct | ElectrolyteProduct): string {
+  return product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}-${product.PRICE_SUB_NUM}-${product.PRICE_OTP_NUM}`;
+}
+
 export default function Electrolytes() {
   const [products, setProducts] = useState<ElectrolyteProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -216,12 +221,12 @@ export default function Electrolytes() {
     return sortedProducts.slice(0, 4);
   }, [sortedProducts]);
   
-  // Limit "Best Value" badge to only 3 products (ranks 2-4, since rank 1 is "Top Value")
+  // FIXED: Use same key generation as rankings
   const bestValueProductUrls = useMemo(() => {
-    return new Set(sortedProducts.slice(1, 4).map(p => p.PAGE_URL || `${p.TITLE}-${p.FLAVOUR}`));
+    return new Set(sortedProducts.slice(1, 4).map(p => getProductKey(p)));
   }, [sortedProducts]);
 
-  // Top value of day (rank 1)
+  // Top value of day (rank 1) - FIXED: Now correctly identifies the single 10.0 product
   const topValueOfDayUrl = useMemo(() => {
     if (!rankings || rankings.totalRankedProducts === 0) return null;
     
@@ -317,8 +322,6 @@ export default function Electrolytes() {
           <div className="bg-background/20 backdrop-blur-xl shadow-lg rounded-lg rounded-t-none border-t border-white/20">
             <header className="text-foreground py-3 md:py-5 relative">
               <div className="px-4 md:px-6">
-                {/* Navigation */}
-                
                 {/* Header Content */}
                 <div className="text-center space-y-2 md:space-y-3 px-8 md:px-0">
                   <Link to="/">
@@ -460,7 +463,7 @@ export default function Electrolytes() {
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mobile-stable-grid">
                 {topValueProducts.map((product, index) => {
-                  const productUrl = product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}`;
+                  const productUrl = getProductKey(product);
                   const isTopValueOfDay = topValueOfDayUrl === productUrl;
                   const isBestValue = bestValueProductUrls.has(productUrl);
 
@@ -505,7 +508,7 @@ export default function Electrolytes() {
             <>
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 mb-8 mobile-stable-grid">
                 {displayedProducts.map((product, index) => {
-                  const productUrl = product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}`;
+                  const productUrl = getProductKey(product);
                   const isTopValueOfDay = topValueOfDayUrl === productUrl;
                   const isBestValue = bestValueProductUrls.has(productUrl);
 
@@ -581,7 +584,7 @@ export default function Electrolytes() {
               Showing {displayedProducts.length} of {sortedProducts.length} products
             </p>
             <p>
-              <strong>Value Rating Weightings:</strong> 35% Cost/Serving, 30% Electrolyte Content, 20% Discount, 15% Servings
+              <strong>Value Rating Weightings:</strong> 40% Cost/Serving, 35% Electrolyte Content, 15% Servings, 10% Discount
             </p>
           </div>
         </div>
