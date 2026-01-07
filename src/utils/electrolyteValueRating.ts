@@ -1,6 +1,7 @@
-// Electrolyte Value Rating Algorithm
+// Electrolyte Value Rating Algorithm - IMPROVED
 // RANK-BASED scoring: distributes scores across full 5.0-10.0 range
-// Weightings: 35% Cost per serving, 30% Total electrolytes, 20% Discount %, 15% Servings per pack
+// Only ONE product can score 10.0 (ties broken by secondary factors)
+// NEW WEIGHTS: 40% Cost per serving, 35% Total electrolytes, 15% Servings, 10% Discount
 
 export interface ElectrolyteProduct {
   TITLE?: string;
@@ -104,6 +105,7 @@ function calculateRawMetrics(product: ElectrolyteProduct, isSubscription: boolea
     totalElectrolytes,
     servings,
     discountPercent,
+    price,
     hasValidData: servings !== null && totalElectrolytes !== null
   };
 }
@@ -182,13 +184,19 @@ function getProductKey(product: ElectrolyteProduct): string {
 
 /**
  * Calculate raw weighted score for a product
- * Weightings: 35% Cost per serving (lower is better), 30% Total electrolytes, 20% Discount, 15% Servings
+ * NEW WEIGHTS: 40% Cost per serving (lower is better), 35% Total electrolytes, 15% Servings, 10% Discount
  */
 function calculateRawWeightedScore(
   product: ElectrolyteProduct,
   benchmarks: ElectrolyteBenchmarks,
   isSubscription: boolean
-): { score: number; hasMissingData: boolean } | null {
+): { 
+  score: number; 
+  hasMissingData: boolean; 
+  costPerServing: number | null;
+  totalElectrolytes: number | null;
+  price: number | null;
+} | null {
   const price = getActivePrice(product, isSubscription);
   if (!price) return null;
   
@@ -218,24 +226,39 @@ function calculateRawWeightedScore(
     ? normalize(metrics.discountPercent, benchmarks.minDiscountPercent, benchmarks.maxDiscountPercent)
     : 0;
   
-  // Weighted average: 35% cost, 30% electrolytes, 20% discount, 15% servings
-  const score = (normalizedCost * 0.35) + 
-                (normalizedElectrolytes * 0.30) + 
-                (normalizedDiscount * 0.20) + 
-                (normalizedServings * 0.15);
+  // NEW WEIGHTS: 40% cost, 35% electrolytes, 15% servings, 10% discount
+  const score = (normalizedCost * 0.40) + 
+                (normalizedElectrolytes * 0.35) + 
+                (normalizedServings * 0.15) + 
+                (normalizedDiscount * 0.10);
   
-  return { score, hasMissingData };
+  return { 
+    score, 
+    hasMissingData,
+    costPerServing: metrics.costPerServing,
+    totalElectrolytes: metrics.totalElectrolytes,
+    price: metrics.price
+  };
 }
 
 /**
  * Calculate rank-based scores for all products
+ * IMPROVED: Breaks ties to ensure only ONE product gets 10.0
+ * Tie-breaking order: Better cost per serving, then higher electrolytes, then lower price
  */
 export function calculateElectrolyteRankings(
   products: ElectrolyteProduct[],
   benchmarks: ElectrolyteBenchmarks,
   isSubscription: boolean
 ): ElectrolyteRankings {
-  const scoredProducts: { key: string; score: number; hasMissingData: boolean }[] = [];
+  const scoredProducts: { 
+    key: string; 
+    score: number; 
+    hasMissingData: boolean;
+    costPerServing: number | null;
+    totalElectrolytes: number | null;
+    price: number | null;
+  }[] = [];
   const rawScores = new Map<string, number>();
   const hasMissingDataMap = new Map<string, boolean>();
   
@@ -245,34 +268,54 @@ export function calculateElectrolyteRankings(
     const result = calculateRawWeightedScore(product, benchmarks, isSubscription);
     if (result !== null) {
       const key = getProductKey(product);
-      scoredProducts.push({ key, score: result.score, hasMissingData: result.hasMissingData });
+      scoredProducts.push({ 
+        key, 
+        score: result.score, 
+        hasMissingData: result.hasMissingData,
+        costPerServing: result.costPerServing,
+        totalElectrolytes: result.totalElectrolytes,
+        price: result.price
+      });
       rawScores.set(key, result.score);
       hasMissingDataMap.set(key, result.hasMissingData);
     }
   }
   
-  // Sort by score descending (best first)
-  scoredProducts.sort((a, b) => b.score - a.score);
-  
-  // Assign ranks with tie handling
-  const rankMap = new Map<string, number>();
-  let currentRank = 1;
-  let previousScore: number | null = null;
-  let sameRankCount = 0;
-  
-  for (let i = 0; i < scoredProducts.length; i++) {
-    const { key, score } = scoredProducts[i];
-    
-    if (previousScore !== null && Math.abs(score - previousScore) < 0.0001) {
-      rankMap.set(key, currentRank);
-      sameRankCount++;
-    } else {
-      currentRank = currentRank + sameRankCount;
-      rankMap.set(key, currentRank);
-      sameRankCount = 1;
+  // Sort with tie-breaking:
+  // 1. Higher score wins
+  // 2. If tied, lower cost per serving wins
+  // 3. If still tied, higher total electrolytes wins
+  // 4. If still tied, lower price wins
+  scoredProducts.sort((a, b) => {
+    // Primary: score (descending)
+    if (Math.abs(b.score - a.score) >= 0.0001) {
+      return b.score - a.score;
     }
     
-    previousScore = score;
+    // Tie-breaker 1: cost per serving (ascending - lower is better)
+    const aCost = a.costPerServing ?? Infinity;
+    const bCost = b.costPerServing ?? Infinity;
+    if (Math.abs(aCost - bCost) >= 0.01) {
+      return aCost - bCost;
+    }
+    
+    // Tie-breaker 2: total electrolytes (descending - higher is better)
+    const aElectrolytes = a.totalElectrolytes ?? 0;
+    const bElectrolytes = b.totalElectrolytes ?? 0;
+    if (Math.abs(bElectrolytes - aElectrolytes) >= 1) {
+      return bElectrolytes - aElectrolytes;
+    }
+    
+    // Tie-breaker 3: price (ascending - lower is better)
+    const aPrice = a.price ?? Infinity;
+    const bPrice = b.price ?? Infinity;
+    return aPrice - bPrice;
+  });
+  
+  // Assign sequential ranks (no ties now!)
+  const rankMap = new Map<string, number>();
+  for (let i = 0; i < scoredProducts.length; i++) {
+    rankMap.set(scoredProducts[i].key, i + 1);
   }
   
   return {
@@ -285,6 +328,7 @@ export function calculateElectrolyteRankings(
 
 /**
  * Calculate Electrolyte Value Rating (5.0-10.0 scale)
+ * GUARANTEED: Only ONE product can score 10.0 (ties broken by cost/electrolytes/price)
  */
 export function calculateElectrolyteValueRating(
   product: ElectrolyteProduct,
@@ -310,6 +354,8 @@ export function calculateElectrolyteValueRating(
   if (totalProducts === 1) {
     finalScore = 10.0;
   } else {
+    // Rank is 1-based, so rank 1 = best
+    // percentile: 0 = worst rank, 1 = best rank
     const percentile = (totalProducts - rank) / (totalProducts - 1);
     finalScore = 5.0 + (percentile * 5.0);
   }
@@ -340,4 +386,24 @@ export function getElectrolyteValueRatingLabel(rating: number): string {
   if (rating >= 7) return 'Great';
   if (rating >= 6) return 'Good';
   return 'Average';
+}
+
+/**
+ * Get detailed explanation of Electrolyte Value score
+ * NEW: Helps users understand what the rating means
+ */
+export function getElectrolyteValueRatingExplanation(rating: number): string {
+  if (rating >= 9.5) {
+    return 'Outstanding value - exceptional cost per serving with high electrolyte content';
+  }
+  if (rating >= 7) {
+    return 'Great value - well-priced with good electrolyte levels';
+  }
+  if (rating >= 6) {
+    return 'Good value - fair pricing for the electrolyte content provided';
+  }
+  if (rating >= 5.5) {
+    return 'Fair value - average market pricing for electrolytes';
+  }
+  return 'Below average value - consider alternatives for better cost efficiency';
 }
