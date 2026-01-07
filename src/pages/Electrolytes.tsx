@@ -1,385 +1,603 @@
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useDebounce } from 'use-debounce';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, SortDesc, RotateCcw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
-import { Droplets, Dumbbell, TrendingDown, Zap, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { VideoBackground } from "@/components/VideoBackground";
-import proteinHero from "@/assets/protein-hero.jpg";
-import electrolytesHero from "@/assets/electrolytes-hero.jpg";
+import CategoryTabs from "@/components/CategoryTabs";
+import { StickyTimer } from "@/components/Header";
 
-const LandingPage = () => {
+import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
+import { ElectrolyteSignUpPromptWrapper } from "@/components/ElectrolyteSignUpPromptWrapper";
+import { ElectrolyteProductCard } from "@/components/ElectrolyteProductCard";
+import { ElectrolyteComparisonWidget } from "@/components/ElectrolyteComparisonWidget";
+import { ElectrolyteComparisonModal } from "@/components/ElectrolyteComparisonModal";
+import { ElectrolyteComparisonProvider } from "@/hooks/useElectrolyteComparison";
+import { PageLoading } from "@/components/PageLoading";
+import { VideoBackground } from "@/components/VideoBackground";
+import { filterByValidFlavor, countInvalidFlavors } from "@/utils/flavorFilter";
+import {
+  ElectrolyteProduct,
+  hasValidPrice,
+  getActivePrice,
+  calculateElectrolyteBenchmarks,
+  calculateElectrolyteRankings,
+  calculateElectrolyteValueRating,
+} from "@/utils/electrolyteValueRating";
+import { 
+  processElectrolyteProducts,
+  GroupedElectrolyteProduct 
+} from "@/utils/electrolyteProductUtils";
+
+export default function Electrolytes() {
+  const [products, setProducts] = useState<ElectrolyteProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [debouncedQuery] = useDebounce(query, 300);
+  const [isSubscription, setIsSubscription] = useState(false);
+  const [sortBy, setSortBy] = useState('value');
+  const [formatFilter, setFormatFilter] = useState('all');
+  const [displayedCount, setDisplayedCount] = useState(28);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+
+  // Check if any filter/search is active
+  const hasSearchCriteria = useMemo(() => {
+    return query.trim() !== '' || sortBy !== 'value' || formatFilter !== 'all';
+  }, [query, sortBy, formatFilter]);
+
+  // Reset all filters
+  const handleReset = () => {
+    setQuery('');
+    setSortBy('value');
+    setFormatFilter('all');
+    setDisplayedCount(28);
+  };
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const isLoadingRef = useRef(false);
+
+  // Fetch products from JSON
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://intake-collection-data.web.app/electrolytes/master_electrolytes.json');
+        if (!response.ok) throw new Error(`Failed to load products: ${response.status}`);
+
+        // Parse as text first to handle NaN values (invalid JSON but produced by Python)
+        const text = await response.text();
+        const sanitizedText = text.replace(/:\s*NaN\b/g, ': null');
+        const parsed = JSON.parse(sanitizedText);
+        
+        let items: ElectrolyteProduct[] = [];
+        let metaDate: string | undefined;
+
+        if (parsed._meta) {
+          metaDate = parsed._meta.last_updated;
+        }
+        
+        if (parsed.data && Array.isArray(parsed.data)) {
+          items = parsed.data;
+        } else if (Array.isArray(parsed)) {
+          items = parsed;
+        }
+
+        // Apply core flavor filtering to remove invalid entries
+        const validFlavors = filterByValidFlavor(items);
+        const removedCount = countInvalidFlavors(items);
+        
+        console.log(`Loaded electrolyte products: ${items.length}, filtered out ${removedCount} with invalid flavors, remaining: ${validFlavors.length}`, metaDate ? `(lastUpdated: ${metaDate})` : '');
+
+        setProducts(validFlavors);
+        setLastUpdatedAt(metaDate || null);
+        setError(null);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        setError(error instanceof Error ? error.message : 'Unknown error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Filter products based on subscription mode
+  const filteredByMode = useMemo(() => {
+    return products.filter(product => hasValidPrice(product, isSubscription));
+  }, [products, isSubscription]);
+
+  // Calculate benchmarks for current mode
+  const benchmarks = useMemo(() => {
+    if (filteredByMode.length === 0) return null;
+    return calculateElectrolyteBenchmarks(filteredByMode, isSubscription);
+  }, [filteredByMode, isSubscription]);
+
+  // Calculate rankings for current mode
+  const rankings = useMemo(() => {
+    if (filteredByMode.length === 0 || !benchmarks) return null;
+    return calculateElectrolyteRankings(filteredByMode, benchmarks, isSubscription);
+  }, [filteredByMode, benchmarks, isSubscription]);
+
+  // Apply search and format filter
+  const searchFiltered = useMemo(() => {
+    let filtered = filteredByMode;
+    
+    // Text search
+    if (debouncedQuery.trim()) {
+      const searchLower = debouncedQuery.toLowerCase();
+      filtered = filtered.filter(product => {
+        const title = (product.TITLE || '').toLowerCase();
+        const company = (product.COMPANY || '').toLowerCase();
+        const flavour = (product.FLAVOUR || '').toLowerCase();
+        
+        return title.includes(searchLower) || 
+               company.includes(searchLower) || 
+               flavour.includes(searchLower);
+      });
+    }
+    
+    // Format filter
+    if (formatFilter !== 'all') {
+      filtered = filtered.filter(product => {
+        const format = (product.FORMAT || '').toLowerCase();
+        const title = (product.TITLE || '').toLowerCase();
+        const subAmount = (product.SUB_AMOUNT || '').toLowerCase();
+        
+        switch (formatFilter) {
+          case 'powder':
+            return format.includes('powder') || title.includes('powder') || subAmount.includes('g)') || subAmount.includes('kg)');
+          case 'tablet':
+            return format.includes('tablet') || format.includes('effervescent') || title.includes('tablet') || title.includes('effervescent');
+          case 'sachet':
+            return format.includes('sachet') || format.includes('stick') || title.includes('sachet') || subAmount.includes('sachet');
+          case 'drink':
+            return format.includes('drink') || format.includes('ready') || title.includes('drink') || title.includes('ready to drink');
+          case 'capsule':
+            return format.includes('capsule') || format.includes('cap') || title.includes('capsule');
+          default:
+            return true;
+        }
+      });
+    }
+    
+    return filtered;
+  }, [filteredByMode, debouncedQuery, formatFilter]);
+
+  // Process: deduplicate and group by flavor (like protein page)
+  const { grouped: groupedProducts, stats: processingStats } = useMemo(() => {
+    const result = processElectrolyteProducts(searchFiltered, benchmarks, rankings, isSubscription);
+    console.log(`Processing pipeline: ${result.stats.original} filtered → ${result.stats.deduplicated} deduplicated → ${result.stats.grouped} grouped tiles`);
+    return result;
+  }, [searchFiltered, benchmarks, rankings, isSubscription]);
+
+  // Helper to get minimum price across all variants in a grouped product
+  const getMinPriceForTile = (tile: GroupedElectrolyteProduct): number => {
+    const prices = tile.variants
+      .map(v => getActivePrice(v, isSubscription))
+      .filter((p): p is number => p !== null && p > 0);
+    return prices.length > 0 ? Math.min(...prices) : Infinity;
+  };
+
+  // Sort grouped products based on selected sort option
+  const sortedProducts = useMemo(() => {
+    if (!benchmarks || !rankings) return groupedProducts;
+    
+    return [...groupedProducts].sort((a, b) => {
+      switch (sortBy) {
+        case 'value':
+          const ratingA = calculateElectrolyteValueRating(a, benchmarks, rankings, isSubscription) || 0;
+          const ratingB = calculateElectrolyteValueRating(b, benchmarks, rankings, isSubscription) || 0;
+          return ratingB - ratingA; // Higher rating = better = comes first
+        case 'price_low':
+          // Sort by the cheapest variant within each tile
+          const priceA = getMinPriceForTile(a);
+          const priceB = getMinPriceForTile(b);
+          return priceA - priceB;
+        case 'sodium':
+          // Sort by sodium - products without sodium shown last
+          const sodiumA = typeof a.SODIUM_MG === 'number' && a.SODIUM_MG > 0 ? a.SODIUM_MG : -1;
+          const sodiumB = typeof b.SODIUM_MG === 'number' && b.SODIUM_MG > 0 ? b.SODIUM_MG : -1;
+          // If one has sodium and other doesn't, sodium one comes first
+          if (sodiumA === -1 && sodiumB !== -1) return 1;
+          if (sodiumB === -1 && sodiumA !== -1) return -1;
+          return sodiumB - sodiumA; // Higher sodium first
+        default:
+          return 0;
+      }
+    });
+  }, [groupedProducts, benchmarks, rankings, isSubscription, sortBy]);
+
+  // Get top value products (top 4 for display, but only 3 get "Best Value" badge)
+  const topValueProducts = useMemo(() => {
+    return sortedProducts.slice(0, 4);
+  }, [sortedProducts]);
+  
+  // Limit "Best Value" badge to only 3 products (ranks 2-4, since rank 1 is "Top Value")
+  const bestValueProductUrls = useMemo(() => {
+    return new Set(sortedProducts.slice(1, 4).map(p => p.PAGE_URL || `${p.TITLE}-${p.FLAVOUR}`));
+  }, [sortedProducts]);
+
+  // Top value of day (rank 1)
+  const topValueOfDayUrl = useMemo(() => {
+    if (!rankings || rankings.totalRankedProducts === 0) return null;
+    
+    for (const [key, rank] of rankings.rankMap.entries()) {
+      if (rank === 1) {
+        return key;
+      }
+    }
+    return null;
+  }, [rankings]);
+
+  // Products to display with pagination
+  const displayedProducts = useMemo(() => {
+    return sortedProducts.slice(0, displayedCount);
+  }, [sortedProducts, displayedCount]);
+
+  // Infinite scroll
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting || isLoadingRef.current) return;
+      if (displayedCount >= sortedProducts.length) return;
+
+      isLoadingRef.current = true;
+      setIsLoadingMore(true);
+
+      const toAdd = Math.min(28, sortedProducts.length - displayedCount);
+      if (toAdd > 0) {
+        setDisplayedCount(prev => prev + toAdd);
+      }
+
+      setTimeout(() => {
+        isLoadingRef.current = false;
+        setIsLoadingMore(false);
+      }, 80);
+    }, { threshold: 0.01, rootMargin: '200px 0px' });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [displayedCount, sortedProducts.length]);
+
+  // Reset displayed count when filters change
+  useEffect(() => {
+    setDisplayedCount(28);
+  }, [debouncedQuery, isSubscription, sortBy]);
+
+
+  if (loading) {
+    return (
+      <PageLoading 
+        message="Loading Electrolytes..." 
+        subtitle="Fetching the latest electrolyte supplement prices"
+      />
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              <strong>Failed to load products:</strong> {error}
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95 relative overflow-hidden">
+    <ElectrolyteComparisonProvider>
+    <div className="min-h-screen relative page-transition">
       {/* Video Background with crossfade */}
       <VideoBackground />
 
-      {/* Enhanced Animated Gradient Mesh */}
-      <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
-        {/* Primary glow - top right */}
-        <motion.div
-          className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-primary/30 via-primary/20 to-transparent blur-3xl"
-          animate={{
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        
-        {/* Secondary glow - left side */}
-        <motion.div
-          className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-blue-500/20 via-purple-500/15 to-transparent blur-3xl"
-          animate={{
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
-          }}
-        />
-        
-        {/* Accent glow - bottom center */}
-        <motion.div
-          className="absolute -bottom-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-gradient-to-t from-primary/25 via-primary/10 to-transparent blur-3xl"
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.2, 0.35, 0.2],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-        />
+      {/* Sticky Timer */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <StickyTimer lastUpdatedISO={lastUpdatedAt || undefined} />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-        {/* Header */}
-        <header className="flex items-center justify-between p-4 sm:p-6 lg:p-8">
-          <motion.div 
-            className="flex items-center gap-3"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <img
-              src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png"
-              alt="Intake"
-              className="h-5 sm:h-6 lg:h-7 w-auto"
-              style={{ filter: 'drop-shadow(0 0 8px #fff) drop-shadow(0 0 20px rgba(255,255,255,0.8))' }}
-            />
-          </motion.div>
-        </header>
-
-        {/* Hero Section */}
-        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 py-8 sm:py-12 lg:py-0">
-          <div className="max-w-7xl mx-auto w-full">
-            {/* Headline Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-center mb-8 sm:mb-12 lg:mb-14"
-            >
-              {/* Badge */}
-              <motion.div 
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/30 rounded-full px-5 py-2.5 mb-6 sm:mb-8 shadow-lg shadow-primary/10"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-                <span className="text-sm font-semibold text-primary">Stop Overpaying for Supplements</span>
-              </motion.div>
-              
-              {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-foreground mb-4 sm:mb-6 leading-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/80">
-                  Find the Best Value
-                </span>
-                <br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary to-purple-600 animate-gradient">
-                  Supplements in Seconds
-                </span>
-              </h1>
-              
-              {/* Subheadline */}
-              <p className="text-muted-foreground text-base sm:text-lg lg:text-xl max-w-3xl mx-auto mb-6">
-                Compare 100+ products by real nutritional value, not just price.
-              </p>
-              <p className="text-foreground font-semibold text-lg sm:text-xl lg:text-2xl max-w-2xl mx-auto">
-                Save money. Get better results. Make smarter choices.
-              </p>
-
-              {/* Trust Indicators */}
-              <motion.div 
-                className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-8 sm:mt-10 text-sm text-muted-foreground"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>Updated Daily</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>UK's Best Retailers</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>100% Free</span>
-                </div>
-              </motion.div>
-            </motion.div>
-
-            {/* Stats Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              className="grid grid-cols-3 gap-3 sm:gap-6 max-w-3xl mx-auto mb-10 sm:mb-14"
-            >
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className="bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl hover:border-primary/30 transition-all"
-              >
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-br from-primary to-purple-600 mb-1 sm:mb-2">
-                  100+
-                </div>
-                <div className="text-xs sm:text-sm font-medium text-muted-foreground">Products Tracked</div>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className="bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl hover:border-primary/30 transition-all"
-              >
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-br from-green-500 to-emerald-600 mb-1 sm:mb-2">
-                  £40+
-                </div>
-                <div className="text-xs sm:text-sm font-medium text-muted-foreground">Avg. Saved/Year</div>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className="bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl hover:border-primary/30 transition-all"
-              >
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-br from-blue-500 to-cyan-600 mb-1 sm:mb-2">
-                  24/7
-                </div>
-                <div className="text-xs sm:text-sm font-medium text-muted-foreground">Price Updates</div>
-              </motion.div>
-            </motion.div>
-
-            {/* CTA Cards - HIGHLIGHTED */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 lg:gap-8 max-w-6xl mx-auto"
-            >
-              {/* Protein Card - ENHANCED */}
-              <Link to="/protein" className="group block">
-                <motion.div 
-                  className="relative overflow-hidden rounded-3xl border-2 border-border/50 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(168,85,247,0.5)] hover:scale-[1.03] hover:border-primary/70"
-                  whileHover={{ y: -8 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                >
-                  {/* Animated gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/5 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  
-                  {/* Background Image */}
-                  <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+      {/* Header */}
+      <div className="relative z-10 pt-8 md:pt-10 transition-all duration-1000 delay-1000 fade-in-up">
+        <div className="container mx-auto px-2 md:px-4">
+          {/* Browser-style Tabs */}
+          <div className="flex w-full mb-0">
+            <CategoryTabs />
+          </div>
+          
+          <div className="bg-background/20 backdrop-blur-xl shadow-lg rounded-lg rounded-t-none border-t border-white/20">
+            <header className="text-foreground py-3 md:py-5 relative">
+              <div className="px-4 md:px-6">
+                {/* Navigation */}
+                
+                {/* Header Content */}
+                <div className="text-center space-y-2 md:space-y-3 px-8 md:px-0">
+                  <Link to="/">
                     <img 
-                      src={proteinHero} 
-                      alt="Protein" 
-                      className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
+                      src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
+                      alt="Intake Logo" 
+                      className="h-5 md:h-8 mx-auto filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)] cursor-pointer hover:opacity-80 transition-opacity"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
-                  </div>
+                  </Link>
+                  <h1 className="text-lg md:text-2xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">
+                    Compare Electrolytes
+                  </h1>
+                  <p className="text-xs md:text-sm text-foreground/80 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
+                    Compare electrolyte supplements - find the best value for hydration
+                  </p>
+                </div>
+              </div>
+            </header>
 
-                  {/* Content */}
-                  <div className="relative p-6 sm:p-8 lg:p-10">
-                    {/* Top Row */}
-                    <div className="flex items-start justify-between mb-6">
-                      <motion.div 
-                        className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-600/20 border-2 border-primary/30 shadow-lg shadow-primary/20 group-hover:shadow-xl group-hover:shadow-primary/40 group-hover:scale-110 transition-all duration-300"
-                        whileHover={{ rotate: [0, -10, 10, 0] }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <Dumbbell className="h-7 w-7 sm:h-9 sm:w-9 text-primary" />
-                      </motion.div>
-                      <div className="flex items-center gap-2 bg-green-500/20 border-2 border-green-500/40 rounded-full px-3 py-1.5 shadow-lg shadow-green-500/20">
-                        <TrendingDown className="h-3.5 w-3.5 text-green-500" />
-                        <span className="text-xs font-bold text-green-600">Best Deals</span>
-                      </div>
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="text-3xl sm:text-4xl font-black text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
-                      Protein Powders
-                    </h3>
-                    
-                    {/* Description */}
-                    <p className="text-muted-foreground mb-6 text-sm sm:text-base leading-relaxed">
-                      Compare 100+ protein supplements by grams per pound. Find scientifically-backed value for muscle growth and recovery.
-                    </p>
-
-                    {/* Features */}
-                    <div className="space-y-2 mb-6">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-                        <span>Real-time price tracking</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-                        <span>Intake Value™ ratings</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-                        <span>Compare up to 4 products</span>
-                      </div>
-                    </div>
-
-                    {/* CTA Button */}
-                    <motion.div
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                    >
-                      <Button 
-                        size="lg"
-                        className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-bold text-base sm:text-lg shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50 border-0 group-hover:scale-105 transition-all duration-300"
-                      >
-                        <span>Explore Protein Supplements</span>
-                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
-                      </Button>
-                    </motion.div>
-                  </div>
-
-                  {/* Shine effect on hover */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  </div>
-                </motion.div>
-              </Link>
-
-              {/* Electrolytes Card - ENHANCED */}
-              <Link to="/electrolytes" className="group block">
-                <motion.div 
-                  className="relative overflow-hidden rounded-3xl border-2 border-border/50 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.5)] hover:scale-[1.03] hover:border-blue-500/70"
-                  whileHover={{ y: -8 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                >
-                  {/* Animated gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-blue-500/5 to-cyan-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {/* Search and Toggle */}
+            <div className="px-4 md:px-6 pb-4 md:pb-5 space-y-3">
+              {/* Subscription Toggle + Sort Dropdown Row */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 p-3 sm:p-4 bg-background/30 rounded-lg border-2 border-white/20">
+                {/* Subscription Toggle */}
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <button
+                    onClick={() => setIsSubscription(false)}
+                    className={`text-xs sm:text-sm font-medium transition-all duration-200 px-2 sm:px-3 py-1.5 rounded-md whitespace-nowrap ${
+                      !isSubscription 
+                        ? 'text-primary bg-primary/20 shadow-sm' 
+                        : 'text-foreground/60 hover:text-foreground/80'
+                    }`}
+                  >
+                    One-Time
+                  </button>
                   
-                  {/* Background Image */}
-                  <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                    <img 
-                      src={electrolytesHero} 
-                      alt="Electrolytes" 
-                      className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
-                  </div>
+                  <Switch
+                    id="subscription-toggle"
+                    checked={isSubscription}
+                    onCheckedChange={setIsSubscription}
+                    className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
+                  />
+                  
+                  <button
+                    onClick={() => setIsSubscription(true)}
+                    className={`text-xs sm:text-sm font-medium transition-all duration-200 px-2 sm:px-3 py-1.5 rounded-md whitespace-nowrap ${
+                      isSubscription 
+                        ? 'text-primary bg-primary/20 shadow-sm' 
+                        : 'text-foreground/60 hover:text-foreground/80'
+                    }`}
+                  >
+                    Subscription
+                  </button>
+                </div>
 
-                  {/* Content */}
-                  <div className="relative p-6 sm:p-8 lg:p-10">
-                    {/* Top Row */}
-                    <div className="flex items-start justify-between mb-6">
-                      <motion.div 
-                        className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-600/20 border-2 border-blue-500/30 shadow-lg shadow-blue-500/20 group-hover:shadow-xl group-hover:shadow-blue-500/40 group-hover:scale-110 transition-all duration-300"
-                        whileHover={{ rotate: [0, -10, 10, 0] }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <Droplets className="h-7 w-7 sm:h-9 sm:w-9 text-blue-500" />
-                      </motion.div>
-                      <div className="flex items-center gap-2 bg-blue-500/20 border-2 border-blue-500/40 rounded-full px-3 py-1.5 shadow-lg shadow-blue-500/20">
-                        <Zap className="h-3.5 w-3.5 text-blue-500" />
-                        <span className="text-xs font-bold text-blue-600">Hydration</span>
-                      </div>
-                    </div>
+                {/* Divider */}
+                <div className="hidden sm:block w-px h-6 bg-white/30" />
 
-                    {/* Title */}
-                    <h3 className="text-3xl sm:text-4xl font-black text-foreground mb-3 group-hover:text-blue-500 transition-colors duration-300">
-                      Electrolytes
-                    </h3>
-                    
-                    {/* Description */}
-                    <p className="text-muted-foreground mb-6 text-sm sm:text-base leading-relaxed">
-                      Compare hydration supplements by electrolyte content. Optimize performance, recovery, and daily hydration.
-                    </p>
+                {/* Sort Dropdown, Format Filter and Reset */}
+                <div className="flex flex-wrap items-center gap-2 justify-center">
+                  {/* Sort Dropdown */}
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="bg-background/20 border-white/30 text-foreground focus:bg-background/30 focus:border-white/50 h-8 text-xs w-[130px]">
+                      <div className="flex items-center gap-1 truncate">
+                        <SortDesc className="h-3 w-3 shrink-0 text-white/70" />
+                        <SelectValue placeholder="Sort by" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border shadow-lg z-50">
+                      <SelectItem value="value">Best Value</SelectItem>
+                      <SelectItem value="price_low">Price: Low to High</SelectItem>
+                      <SelectItem value="sodium">Sodium: High to Low</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                    {/* Features */}
-                    <div className="space-y-2 mb-6">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                        <span>Na/K/Mg level analysis</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                        <span>Cost per serving breakdown</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                        <span>Subscription vs one-time pricing</span>
-                      </div>
-                    </div>
+                  {/* Format Filter */}
+                  <Select value={formatFilter} onValueChange={setFormatFilter}>
+                    <SelectTrigger className="bg-background/20 border-white/30 text-foreground focus:bg-background/30 focus:border-white/50 h-8 text-xs w-[130px]">
+                      <SelectValue placeholder="Format" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border shadow-lg z-50">
+                      <SelectItem value="all">All Formats</SelectItem>
+                      <SelectItem value="powder">Powder</SelectItem>
+                      <SelectItem value="tablet">Tablet/Effervescent</SelectItem>
+                      <SelectItem value="sachet">Sachet/Stick</SelectItem>
+                      <SelectItem value="drink">Ready to Drink</SelectItem>
+                      <SelectItem value="capsule">Capsule</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                    {/* CTA Button */}
-                    <motion.div
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400 }}
+                  {hasSearchCriteria && (
+                    <button
+                      onClick={handleReset}
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-md bg-primary/20 hover:bg-primary/30 text-primary transition-colors text-xs font-medium whitespace-nowrap h-8"
                     >
-                      <Button 
-                        size="lg"
-                        className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-500/90 hover:to-cyan-600/90 text-white font-bold text-base sm:text-lg shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 border-0 group-hover:scale-105 transition-all duration-300"
-                      >
-                        <span>Explore Electrolyte Supplements</span>
-                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
-                      </Button>
-                    </motion.div>
-                  </div>
+                      <RotateCcw className="h-3 w-3" />
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
 
-                  {/* Shine effect on hover */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  </div>
-                </motion.div>
-              </Link>
-            </motion.div>
+              {/* Search */}
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="Search electrolyte supplements..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="bg-background/20 border-white/30 text-foreground placeholder:text-white/70 focus:bg-background/30 focus:border-white/50 h-7 text-xs"
+                />
+              </div>
+
+              {/* Results Count */}
+              <div className="flex items-center justify-between text-xs text-foreground/70">
+                <span>
+                  {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''} 
+                  {processingStats.grouped < processingStats.deduplicated && (
+                    <span className="text-foreground/50 ml-1">
+                      ({processingStats.deduplicated} variants)
+                    </span>
+                  )}
+                </span>
+                <span>{isSubscription ? 'Subscription mode' : 'One-time purchase mode'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Products Section */}
+      <div className="relative z-10">
+        {/* Top Value Products */}
+        {topValueProducts.length > 0 && !hasSearchCriteria && (
+          <div className="container mx-auto px-2 md:px-4 py-6">
+            <div className="featured-products-container rounded-xl p-3 md:p-4 bg-background/5 backdrop-blur-sm">
+              <h2 className="text-lg md:text-xl font-bold text-center mb-3 md:mb-4 text-foreground drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
+                {isSubscription ? "Best Subscription Deals" : "Best One-Time Purchases"}
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mobile-stable-grid">
+                {topValueProducts.map((product, index) => {
+                  const productUrl = product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}`;
+                  const isTopValueOfDay = topValueOfDayUrl === productUrl;
+                  const isBestValue = bestValueProductUrls.has(productUrl);
+
+                  return (
+                    <div 
+                      key={`top-${index}`}
+                      className="staggered-fade-in"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      {(isBestValue || isTopValueOfDay) ? (
+                        <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
+                          <ElectrolyteProductCard
+                            product={product}
+                            isSubscription={isSubscription}
+                            benchmarks={benchmarks}
+                            rankings={rankings}
+                            isTopValue={isBestValue}
+                            isTopValueOfDay={isTopValueOfDay}
+                          />
+                        </div>
+                      ) : (
+                        <ElectrolyteProductCard
+                          product={product}
+                          isSubscription={isSubscription}
+                          benchmarks={benchmarks}
+                          rankings={rankings}
+                          isTopValue={isBestValue}
+                          isTopValueOfDay={isTopValueOfDay}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Products Grid */}
+        <div className="container mx-auto px-2 md:px-4 pb-8">
+          {sortedProducts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 mb-8 mobile-stable-grid">
+                {displayedProducts.map((product, index) => {
+                  const productUrl = product.PAGE_URL || `${product.TITLE}-${product.FLAVOUR}`;
+                  const isTopValueOfDay = topValueOfDayUrl === productUrl;
+                  const isBestValue = bestValueProductUrls.has(productUrl);
+
+                  return (
+                    <div 
+                      key={`${productUrl}-${index}`}
+                      className="staggered-fade-in"
+                      style={{ animationDelay: `${Math.min(index, 20) * 40}ms` }}
+                    >
+                      {(isBestValue || isTopValueOfDay) ? (
+                        <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
+                          <ElectrolyteProductCard
+                            product={product}
+                            isSubscription={isSubscription}
+                            benchmarks={benchmarks}
+                            rankings={rankings}
+                            isTopValue={isBestValue}
+                            isTopValueOfDay={isTopValueOfDay}
+                          />
+                        </div>
+                      ) : (
+                        <ElectrolyteProductCard
+                          product={product}
+                          isSubscription={isSubscription}
+                          benchmarks={benchmarks}
+                          rankings={rankings}
+                          isTopValue={isBestValue}
+                          isTopValueOfDay={isTopValueOfDay}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Sentinel for infinite scroll */}
+              {displayedCount < sortedProducts.length && (
+                <div ref={sentinelRef} className="h-10 w-full opacity-0 pointer-events-none" />
+              )}
+
+              {/* Loading indicator */}
+              {isLoadingMore && (
+                <div className="text-center py-6">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-3"></div>
+                  <p className="text-foreground/70 text-sm">Loading more products...</p>
+                </div>
+              )}
+
+              {/* Show more message */}
+              {displayedCount < sortedProducts.length && !isLoadingMore && (
+                <div className="text-center py-8">
+                  <p className="text-foreground/70 mb-2">Scroll down to load more products</p>
+                  <p className="text-sm text-foreground/50">
+                    Showing {displayedCount} of {sortedProducts.length} products
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-lg text-foreground/70 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
+                No products found {isSubscription ? 'with subscription pricing' : 'for one-time purchase'}.
+              </p>
+              <p className="text-sm text-foreground/50 mt-2">
+                Try {isSubscription ? 'switching to one-time purchase' : 'switching to subscription mode'} or adjusting your search.
+              </p>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="text-center text-sm text-foreground/60 space-y-1 mt-8">
+            <p>
+              Showing {displayedProducts.length} of {sortedProducts.length} products
+            </p>
+            <p>
+              <strong>Value Rating Weightings:</strong> 35% Cost/Serving, 30% Electrolyte Content, 20% Discount, 15% Servings
+            </p>
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="px-4 sm:px-6 py-6 sm:py-8 text-center mt-auto">
-          <motion.p 
-            className="text-xs text-muted-foreground"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            © {new Date().getFullYear()} Intake Ltd. All rights reserved.
-          </motion.p>
-        </footer>
+        <CookiesDisclaimer />
+        <ElectrolyteSignUpPromptWrapper hasSearchCriteria={hasSearchCriteria} />
+        
+        {/* Comparison Widget & Modal */}
+        <ElectrolyteComparisonWidget />
+        <ElectrolyteComparisonModal 
+          isSubscription={isSubscription} 
+          benchmarks={benchmarks} 
+          rankings={rankings} 
+        />
       </div>
     </div>
+    </ElectrolyteComparisonProvider>
   );
-};
-
-export default LandingPage;
+}
