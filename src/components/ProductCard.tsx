@@ -1,4 +1,5 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { getAffiliateUrl, logAffiliateClick, getMerchantId, getAwinAttributes } from '@/utils/awinAffiliate';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, TrendingUp, Star, Plus, Crown, Heart } from "lucide-react";
