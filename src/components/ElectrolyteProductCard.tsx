@@ -1,4 +1,5 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { getAffiliateUrl, logAffiliateClick, getMerchantId, getAwinAttributes } from '@/utils/awinAffiliate';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Crown, Zap, Droplets, Plus, Check, Heart } from "lucide-react";
@@ -101,7 +102,8 @@ export function ElectrolyteProductCard({
   const productHasVariants = hasVariants(product);
   const currentProduct = productHasVariants ? product.variants[selectedVariantIndex] : product;
   const variantCount = productHasVariants ? product.variantCount : 1;
-  const productUrl = currentProduct.PAGE_URL;
+  const originalUrl = currentProduct.PAGE_URL;
+  const productUrl = getAffiliateUrl(originalUrl);
   
   const { addToComparison, isInComparison, comparisonProducts } = useElectrolyteComparison();
   const isCompared = isInComparison(currentProduct);
@@ -328,11 +330,15 @@ export function ElectrolyteProductCard({
             {/* Product Title */}
             {currentProduct.PAGE_URL ? (
               <a
-                href={currentProduct.PAGE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block no-underline"
-                onClick={(e) => e.stopPropagation()}
+                   href={productUrl}  // ✅ Use affiliate URL, not currentProduct.PAGE_URL
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   {...getAwinAttributes(originalUrl || '')}  // ✅ Add Awin tracking attributes
+                   className="block no-underline"
+                   onClick={(e) => {
+                   e.stopPropagation();
+                   logAffiliateClick(originalUrl || '', !!getMerchantId(originalUrl || ''));  // ✅ Add logging
+                }}
               >
                 <CardTitle
                   className="text-xs sm:text-sm font-heading font-semibold line-clamp-2 leading-tight text-foreground"
