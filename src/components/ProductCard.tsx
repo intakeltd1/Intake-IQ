@@ -150,7 +150,8 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
   const hasVariants = product.variants && product.variants.length > 1;
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const currentProduct = hasVariants ? product.variants![selectedVariantIndex] : product;
-  const productUrl = currentProduct.URL || currentProduct.LINK;
+  const originalUrl = currentProduct.URL || currentProduct.LINK;
+  const productUrl = getAffiliateUrl(originalUrl);
   
   const outOfStock = isOutOfStock(currentProduct);
   const { addToComparison, isInComparison, comparisonProducts } = useComparison();
@@ -316,11 +317,15 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
           {/* Product Title */}
           {productUrl ? (
             <a
-              href={productUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleCardClick}
-              className="block no-underline"
+      href={productUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      {...getAwinAttributes(originalUrl || '')}
+      onClick={(e) => {
+      handleCardClick(e);
+      logAffiliateClick(originalUrl || '', !!getMerchantId(originalUrl || ''));
+      }}
+      className="block no-underline"
             >
               <CardTitle
                 className="text-xs sm:text-sm font-heading font-semibold line-clamp-2 leading-tight text-foreground"
