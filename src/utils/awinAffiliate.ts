@@ -7,11 +7,10 @@ const AWIN_PUBLISHER_ID = '2578637';
 // Awin Merchant IDs for each retailer
 // You need to get these from your Awin dashboard for each program you've joined
 const AWIN_MERCHANT_IDS: { [key: string]: string } = {
-  'myprotein.com': '2263',
-  'scienceinsport.com': '12345', // Replace with actual ID
-  'bulkpowders.co.uk': '12345',  // Replace with actual ID
-  'theproteinworks.com': '12345', // Replace with actual ID
-  // Add more retailers as you join their programs
+  'grenade.com': '25079',
+  'optimumnutrition.com': '19863',
+  'grenade.com': '25079',
+
 };
 
 /**
