@@ -40,16 +40,19 @@
   <div id="root"></div>
   
   <!-- Awin MasterTag - Load before React -->
-  <script>
-    (function() {
-      var s = document.createElement('script');
-      s.type = 'text/javascript';
-      s.async = true;
-      s.src = 'https://www.dwin2.com/pub.2578637.min.js';
-      var x = document.getElementsByTagName('script')[0];
-      x.parentNode.insertBefore(s, x);
-    })();
-  </script>
+<script>
+  (function() {
+    var s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = 'https://www.dwin2.com/pub.2578637.min.js';
+    s.onload = function() {
+      console.log('✅ Awin MasterTag loaded');
+    };
+    var x = document.getElementsByTagName('script')[0];
+    x.parentNode.insertBefore(s, x);
+  })();
+</script>
   
   <script type="module" src="/src/main.tsx"></script>
 </body>
