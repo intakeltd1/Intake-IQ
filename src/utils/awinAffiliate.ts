@@ -8,7 +8,7 @@ const AWIN_PUBLISHER_ID = '2578637';
 // You need to get these from your Awin dashboard for each program you've joined
 const AWIN_MERCHANT_IDS: { [key: string]: string } = {
   'grenade.com': '25079',
-  'optimumnutrition.com': '19863',
+  'optimumnutrition.com/en-gb': '19863',
   'grenade.com': '25079',
 
 };
