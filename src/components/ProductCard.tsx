@@ -54,23 +54,6 @@ const isOutOfStock = (product: Product): boolean => {
   // If IN_STOCK is not provided, assume in stock (safer default)
   return false;
 };
-  
-  // Fallback to legacy string checking for backwards compatibility
-  const stockIndicators = [
-    product.STOCK_STATUS?.toLowerCase(),
-    product.PRICE?.toLowerCase(),
-    product.TITLE?.toLowerCase(),
-    product.AMOUNT?.toLowerCase()
-  ];
-  
-  return stockIndicators.some(indicator => 
-    indicator?.includes('out of stock') ||
-    indicator?.includes('unavailable') ||
-    indicator?.includes('sold out') ||
-    indicator === 'out' ||
-    indicator === '0'
-  ) || false;
-};
 
 // Brand extraction helpers
 const extractBrandFromUrl = (url?: string): string | undefined => {
