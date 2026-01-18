@@ -208,13 +208,23 @@ export function ComparisonModal() {
       },
     },
     { 
-      label: 'Protein/Serving', 
-      getValue: (p: any) => formatValue(p.PROTEIN_SERVING, 'g'),
-    },
-    { 
-      label: 'Protein/100g', 
-      getValue: (p: any) => formatValue(p.PROTEIN_100G, 'g'),
-    },
+  label: 'Protein/Serving', 
+  getValue: (p: any) => {
+    const value = p.PROTEIN_SERVING;
+    if (!value || value === 'See Website') return '—';
+    // If value already contains 'g', return as-is, otherwise add 'g'
+    return String(value).toLowerCase().includes('g') ? value : `${value}g`;
+  },
+},
+{ 
+  label: 'Protein/100g', 
+  getValue: (p: any) => {
+    const value = p.PROTEIN_100G;
+    if (!value || value === 'See Website') return '—';
+    // If value already contains 'g', return as-is, otherwise add 'g'
+    return String(value).toLowerCase().includes('g') ? value : `${value}g`;
+  },
+},
     { 
       label: 'Protein per £1', 
       getValue: (p: any) => {
