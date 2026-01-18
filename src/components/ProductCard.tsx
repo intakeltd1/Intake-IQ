@@ -32,7 +32,6 @@ interface Product {
   LINK?: string;
   URL?: string;
   IMAGE_URL?: string;
-  STOCK_STATUS?: string;
   RRP?: string;
   IN_STOCK?: boolean;  // Add this line
   [key: string]: any;
@@ -47,10 +46,14 @@ interface ProductCardProps {
 }
 
 const isOutOfStock = (product: Product): boolean => {
-  // First check the boolean IN_STOCK field if it exists
+  // Use the boolean IN_STOCK field
   if (product.IN_STOCK !== undefined && product.IN_STOCK !== null) {
-    return !product.IN_STOCK; // If IN_STOCK is false, product is out of stock
+    return !product.IN_STOCK;
   }
+  
+  // If IN_STOCK is not provided, assume in stock (safer default)
+  return false;
+};
   
   // Fallback to legacy string checking for backwards compatibility
   const stockIndicators = [
@@ -153,9 +156,16 @@ export function ProductCard({ product, isTopValue, isFeatured, isPopular, isTopV
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // Handle variants - selectedVariant tracks which flavour is selected
-  const hasVariants = product.variants && product.variants.length > 1;
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+// Handle variants - selectedVariant tracks which flavour is selected
+const hasVariants = product.variants && product.variants.length > 1;
+
+// Find first in-stock variant, or default to 0
+const getInitialVariantIndex = () => {
+  if (!hasVariants || !product.variants) return 0;
+  const firstInStockIndex = product.variants.findIndex(v => !isOutOfStock(v));
+  return firstInStockIndex !== -1 ? firstInStockIndex : 0;
+};
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(getInitialVariantIndex());
   const currentProduct = hasVariants ? product.variants![selectedVariantIndex] : product;
   const originalUrl = currentProduct.URL || currentProduct.LINK;
   const productUrl = getAffiliateUrl(originalUrl);
