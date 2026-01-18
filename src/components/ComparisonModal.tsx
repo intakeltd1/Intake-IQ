@@ -238,20 +238,17 @@ export function ComparisonModal() {
       getValue: (p: any) => formatFlavour(p.FLAVOUR) || '—',
     },
     { 
-      label: 'Stock Status', 
-      getValue: (p: any) => {
-        const status = p.OUT_OF_STOCK || p.STOCK_STATUS;
-        if (!status || status === 'See Website') return '—';
-        const isInStock = status.toLowerCase().includes('in stock') || status.toLowerCase().includes('instock');
-        return isInStock ? 'In Stock' : 'Out of Stock';
-      },
-      getClassName: (p: any) => {
-        const status = p.OUT_OF_STOCK || p.STOCK_STATUS;
-        if (!status || status === 'See Website') return '';
-        const isInStock = status.toLowerCase().includes('in stock') || status.toLowerCase().includes('instock');
-        return isInStock ? 'text-green-500' : 'text-destructive';
-      }
-    },
+  label: 'Stock Status', 
+  getValue: (p: any) => {
+    // Use the boolean IN_STOCK field
+    if (p.IN_STOCK === undefined || p.IN_STOCK === null) return '—';
+    return p.IN_STOCK ? 'In Stock' : 'Out of Stock';
+  },
+  getClassName: (p: any) => {
+    if (p.IN_STOCK === undefined || p.IN_STOCK === null) return '';
+    return p.IN_STOCK ? 'text-green-500' : 'text-destructive';
+  }
+},
   ];
 
   return (
