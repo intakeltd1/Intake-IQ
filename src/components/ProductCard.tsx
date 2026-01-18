@@ -34,6 +34,7 @@ interface Product {
   IMAGE_URL?: string;
   STOCK_STATUS?: string;
   RRP?: string;
+  IN_STOCK?: boolean;  // Add this line
   [key: string]: any;
 }
 
@@ -46,6 +47,12 @@ interface ProductCardProps {
 }
 
 const isOutOfStock = (product: Product): boolean => {
+  // First check the boolean IN_STOCK field if it exists
+  if (product.IN_STOCK !== undefined && product.IN_STOCK !== null) {
+    return !product.IN_STOCK; // If IN_STOCK is false, product is out of stock
+  }
+  
+  // Fallback to legacy string checking for backwards compatibility
   const stockIndicators = [
     product.STOCK_STATUS?.toLowerCase(),
     product.PRICE?.toLowerCase(),
