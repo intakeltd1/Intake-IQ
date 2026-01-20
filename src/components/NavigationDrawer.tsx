@@ -57,7 +57,7 @@ export function NavigationDrawer() {
             <div>
               <DrawerTitle className="text-lg font-semibold">Navigation</DrawerTitle>
               <DrawerDescription>
-                Explore Intake Ltd
+                Explore Intake IQ
               </DrawerDescription>
             </div>
             <DrawerClose asChild>
