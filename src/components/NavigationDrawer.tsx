@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Heart, LogIn, LogOut, User, Home, Dumbbell, Droplets } from 'lucide-react';
+import { Menu, X, Heart, LogIn, LogOut, User, Home, Dumbbell, Droplets, BookOpen, BarChart3 } from 'lucide-react';
 import {
   Drawer,
   DrawerClose,
@@ -16,10 +16,31 @@ import { useAuth } from "@/hooks/useAuth";
 import { Separator } from "@/components/ui/separator";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 
-const internalLinks = [
-  { title: 'Home', path: '/', icon: Home, description: 'Intake IQ landing' },
-  { title: 'Protein Powders', path: '/protein', icon: Dumbbell, description: 'Compare protein supplements' },
-  { title: 'Electrolytes', path: '/electrolytes', icon: Droplets, description: 'Compare electrolyte supplements' },
+export const internalLinks = [
+  {
+    title: "Home",
+    path: "/",
+    icon: Home,
+    description: "Intake IQ overview & price intelligence",
+  },
+  {
+    title: "Protein",
+    path: "/protein",
+    icon: Dumbbell,
+    description: "Compare protein powders by value & nutrition",
+  },
+  {
+    title: "Electrolytes",
+    path: "/electrolytes",
+    icon: Droplets,
+    description: "Electrolyte supplements compared objectively",
+  },
+  {
+    title: "Insights",
+    path: "/blog",
+    icon: BookOpen,
+    description: "Market insights, pricing trends & analysis",
+  },
 ];
 
 // External links removed per user request
