@@ -47,14 +47,14 @@ export function CookiesDisclaimer() {
             <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={acceptCookies}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                variant="outline"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground" "border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 Accept Cookies
               </Button>
               <Button 
                 onClick={rejectCookies}
-                variant="outline"
-                className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 Reject Cookies
               </Button>
