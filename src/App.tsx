@@ -13,6 +13,8 @@ import Electrolytes from "./pages/Electrolytes";
 import Auth from "./pages/Auth";
 import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
+import Blog from '@/pages/Blog';
+import BlogPost from '@/pages/BlogPost';
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,8 @@ const App = () => (
                 <Route path="/protein" element={<Index />} />
                 <Route path="/electrolytes" element={<Electrolytes />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/favorites" element={<Favorites />} />
               </Route>
 
