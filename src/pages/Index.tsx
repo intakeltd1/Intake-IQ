@@ -454,34 +454,41 @@ useEffect(() => {
               <CategoryTabs />
             </div>
             
-            <div className="bg-background/20 backdrop-blur-xl shadow-lg rounded-lg rounded-t-none border-t border-white/20">
-              {/* Main Header */}
-              <header className="text-foreground py-3 md:py-5 relative">
-                <div className="px-4 md:px-6">
-                  
-                  {/* Main content - truly centered against full page width */}
-                  <div className="text-center space-y-2 md:space-y-3 px-8 md:px-0">
-                    <Link to="/">
-                      <img 
-                        src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
-                        alt="Intake Logo" 
-                        className="h-5 md:h-8 mx-auto filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)] cursor-pointer hover:opacity-80 transition-opacity"
-                      />
-                    </Link>
-                    <h1 className="text-lg md:text-2xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">
-                      Compare Protein
-                    </h1>
-                    <p className="text-xs md:text-sm text-foreground/80 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
-                      Find your next favourite supplement at the best possible price - updated daily
-                    </p>
-                    {lastUpdatedAt && (
-                      <p className="text-[10px] md:text-xs text-foreground/60">
-                        Last updated: {lastUpdatedAt}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </header>
+<div className="bg-background/20 backdrop-blur-xl shadow-lg rounded-lg rounded-t-none border-t border-white/20">
+  {/* Main Header */}
+  <header className="text-foreground py-3 md:py-5 relative">
+    <div className="px-4 md:px-6">
+      
+      {/* Main content - truly centered against full page width */}
+      <div className="text-center space-y-2 md:space-y-3 px-8 md:px-0">
+        <Link to="/">
+          <img 
+            src="/lovable-uploads/147a0591-cb92-4577-9a7e-31de1281abc2.png" 
+            alt="Intake Logo" 
+            className="h-5 md:h-8 mx-auto filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)] cursor-pointer hover:opacity-80 transition-opacity"
+          />
+        </Link>
+
+        <h1 className="text-xl md:text-3xl font-bold
+          bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-300
+          bg-clip-text text-transparent
+          drop-shadow-[0_0_10px_rgba(251,191,36,0.35)]">
+          Compare Protein
+        </h1>
+
+        <p className="text-xs md:text-sm text-foreground/80 drop-shadow-[0_0_4px_rgba(0,0,0,0.6)]">
+          Find your next favourite supplement at the best possible price – updated daily
+        </p>
+
+        {lastUpdatedAt && (
+          <p className="text-[10px] md:text-xs text-foreground/60">
+            Last updated: {lastUpdatedAt}
+          </p>
+        )}
+      </div>
+    </div>
+  </header>
+</div>
 
               {/* Search Filters - Integrated */}
               <div className="px-4 md:px-6 pb-4 md:pb-5">
