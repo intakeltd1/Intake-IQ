@@ -480,11 +480,13 @@ useEffect(() => {
           Find your next favourite supplement at the best possible price – updated daily
         </p>
 
-        {lastUpdatedAt && (
-          <p className="text-[10px] md:text-xs text-foreground/60">
-            Last updated: {lastUpdatedAt}
-          </p>
-        )}
+        {/*
+{lastUpdatedAt && (
+  <p className="text-[10px] md:text-xs text-foreground/60">
+    Last updated: {lastUpdatedAt}
+  </p>
+)}
+*/}
       </div>
     </div>
   </header>
