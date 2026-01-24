@@ -470,7 +470,7 @@ useEffect(() => {
         </Link>
 
         <h1 className="text-xl md:text-3xl font-bold
-          bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-300
+          bg-gradient-to-r from-amber-50 via-yellow-100 to-orange-50
           bg-clip-text text-transparent
           drop-shadow-[0_0_10px_rgba(251,191,36,0.35)]">
           Compare Protein
