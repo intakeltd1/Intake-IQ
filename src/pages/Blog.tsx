@@ -67,7 +67,7 @@ export default function Blog() {
               Insights, stories, and reflections from the journey of building Intake. Always from my brain, nowhere else.
             </p>
             <div className="mt-4 text-sm text-gray-400 italic">
-              by Joe Flynn • Fail Fast
+              by @joe.intake
             </div>
           </div>
 
