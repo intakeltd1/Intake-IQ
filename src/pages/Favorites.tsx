@@ -4,16 +4,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFavorites } from '@/hooks/useFavorites';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Heart, Loader2, Trash2, ExternalLink, Bell, BellOff } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { ArrowLeft, Heart, Loader2, Trash2, ExternalLink } from 'lucide-react';
 
 export default function Favorites() {
   const { user, loading: authLoading } = useAuth();
   const { favorites, loading: favoritesLoading, removeFavorite } = useFavorites();
   const navigate = useNavigate();
-  const [alertsEnabled, setAlertsEnabled] = useState<boolean>(true);
-  const [loadingAlerts, setLoadingAlerts] = useState(true);
-  const [statusMessage, setStatusMessage] = useState<string>('');
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -21,61 +17,6 @@ export default function Favorites() {
       navigate('/auth');
     }
   }, [user, authLoading, navigate]);
-
-  // Fetch user's alert preference
-  useEffect(() => {
-    async function fetchAlertPreference() {
-      if (!user?.id) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('price_alerts_enabled')
-        .eq('id', user.id)
-        .single();
-
-      if (!error && data) {
-        setAlertsEnabled(data.price_alerts_enabled ?? true);
-      }
-      setLoadingAlerts(false);
-    }
-
-    fetchAlertPreference();
-  }, [user]);
-
-  // Clear status message after 3 seconds
-  useEffect(() => {
-    if (statusMessage) {
-      const timer = setTimeout(() => setStatusMessage(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [statusMessage]);
-
-  // Toggle price alerts
-  async function togglePriceAlerts() {
-    if (!user?.id) return;
-
-    setLoadingAlerts(true);
-    const newValue = !alertsEnabled;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ price_alerts_enabled: newValue })
-      .eq('id', user.id);
-
-    if (error) {
-      setStatusMessage('Failed to update alert settings');
-      setLoadingAlerts(false);
-      return;
-    }
-
-    setAlertsEnabled(newValue);
-    setLoadingAlerts(false);
-    setStatusMessage(
-      newValue 
-        ? '✓ Price alerts enabled' 
-        : '✓ Price alerts disabled'
-    );
-  }
 
   if (authLoading || favoritesLoading) {
     return (
@@ -102,48 +43,6 @@ export default function Favorites() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {/* Price Alerts Toggle Card */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {alertsEnabled ? (
-                  <Bell className="h-5 w-5 text-primary" />
-                ) : (
-                  <BellOff className="h-5 w-5 text-muted-foreground" />
-                )}
-                <div>
-                  <h3 className="font-medium text-sm">Price Drop Alerts</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Get notified when your favorites drop in price
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {statusMessage && (
-                  <span className="text-xs text-green-600 font-medium">
-                    {statusMessage}
-                  </span>
-                )}
-                <Button
-                  variant={alertsEnabled ? "default" : "outline"}
-                  size="sm"
-                  onClick={togglePriceAlerts}
-                  disabled={loadingAlerts}
-                >
-                  {loadingAlerts ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : alertsEnabled ? (
-                    'Enabled'
-                  ) : (
-                    'Disabled'
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {favorites.length === 0 ? (
           <div className="text-center py-12">
             <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-muted flex items-center justify-center">

@@ -7,13 +7,14 @@ import { AlertCircle } from "lucide-react";
 import { StickyTimer } from "@/components/Header";
 import { SearchFilters } from "@/components/SearchFilters";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductCardWithSizes } from "@/components/ProductCardWithSizes";
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
 import { SignUpPromptWrapper } from "@/components/SignUpPromptWrapper";
 
 import { ComparisonWidget } from "@/components/ComparisonWidget";
 import { ComparisonModal } from "@/components/ComparisonModal";
 import { ComparisonProvider, useComparison } from "@/hooks/useComparison";
-import { applyFuzzySearch, isOutOfStock, getTopValueProducts, getBaseProductName, groupProductsByTitle, GroupedProduct, deduplicateByFlavour, isValidProductPrice } from "@/utils/productUtils";
+import { applyFuzzySearch, isOutOfStock, getTopValueProducts, getBaseProductName, groupProductsByTitle, groupProductsByTitleOnly, GroupedProduct, TitleGroupedProduct, deduplicateByFlavour, isValidProductPrice } from "@/utils/productUtils";
 import { useScrollAnimations } from "@/components/ScrollAnimations";
 import { calculateIntakeValueRating, calculateDatasetBenchmarks, calculateScoreRange, calculateProductRankings, DatasetBenchmarks, ScoreRange, ProductRankings } from "@/utils/valueRating";
 import { ValueBenchmarksProvider } from "@/hooks/useValueBenchmarks";
@@ -313,10 +314,19 @@ useEffect(() => {
     });
   }, [products, debouncedQuery, sortBy, quantityFilter, productTypeFilter]);
 
-  // Group products by title to consolidate flavour variants
+  // Group products by title to consolidate flavour variants (legacy grouping - kept for reference)
   const groupedProducts = useMemo(() => {
     return groupProductsByTitle(filteredAndSortedProducts, benchmarks, scoreRange);
   }, [filteredAndSortedProducts, benchmarks, scoreRange]);
+
+  // NEW: Group products by title only - each tile shows servings/amount buttons
+  // Toggle USE_SIZE_VARIANT_TILES to switch between old and new tile formats
+  const USE_SIZE_VARIANT_TILES = true;
+  
+  const titleGroupedProducts = useMemo(() => {
+    if (!USE_SIZE_VARIANT_TILES) return [];
+    return groupProductsByTitleOnly(filteredAndSortedProducts, benchmarks, scoreRange);
+  }, [filteredAndSortedProducts, benchmarks, scoreRange, USE_SIZE_VARIANT_TILES]);
 
   // Get best value products & highlights FROM grouped tiles (so each tile can have a flavour dropdown)
   const bestValueProducts = useMemo(() => {
@@ -328,10 +338,13 @@ useEffect(() => {
     return new Set(top10.map((p) => p.URL || p.LINK));
   }, [groupedProducts]);
 
-  // Products to display with pagination (using grouped products)
+  // Products to display with pagination
+  // Use title-grouped products if size variant tiles are enabled
+  const activeProducts = USE_SIZE_VARIANT_TILES ? titleGroupedProducts : groupedProducts;
+  
   const displayedProducts = useMemo(() => {
-    return groupedProducts.slice(0, displayedCount);
-  }, [groupedProducts, displayedCount]);
+    return activeProducts.slice(0, displayedCount);
+  }, [activeProducts, displayedCount]);
 
 // Load more products via IntersectionObserver (batched 28, quick trigger)
 useEffect(() => {
@@ -342,7 +355,7 @@ useEffect(() => {
   const observer = new IntersectionObserver(([entry]) => {
     if (!entry?.isIntersecting) return;
     if (ticking || isLoadingRef.current) return;
-    if (displayedCount >= groupedProducts.length) return;
+    if (displayedCount >= activeProducts.length) return;
 
     ticking = true;
     isLoadingRef.current = true;
@@ -350,7 +363,7 @@ useEffect(() => {
 
     const current = displayedCount;
     batchStartRef.current = current;
-    const remaining = groupedProducts.length - current;
+    const remaining = activeProducts.length - current;
     const toAdd = Math.min(28, Math.max(0, remaining));
 
     if (toAdd > 0) {
@@ -369,7 +382,7 @@ useEffect(() => {
   return () => {
     observer.disconnect();
   };
-}, [displayedCount, groupedProducts.length]);
+}, [displayedCount, activeProducts.length]);
 
 // Fallback: window scroll listener to trigger load when near bottom
 useEffect(() => {
@@ -379,12 +392,12 @@ useEffect(() => {
     const scrollPos = window.innerHeight + window.scrollY;
     const threshold = doc.scrollHeight - 600;
     if (scrollPos >= threshold) {
-      if (displayedCount >= groupedProducts.length) return;
+      if (displayedCount >= activeProducts.length) return;
       isLoadingRef.current = true;
       setIsLoadingMore(true);
       const current = displayedCount;
       batchStartRef.current = current;
-      const remaining = groupedProducts.length - current;
+      const remaining = activeProducts.length - current;
       const toAdd = Math.min(28, Math.max(0, remaining));
       if (toAdd > 0) setDisplayedCount(current + toAdd);
       window.setTimeout(() => {
@@ -395,7 +408,7 @@ useEffect(() => {
   };
   window.addEventListener('scroll', onScroll, { passive: true } as any);
   return () => window.removeEventListener('scroll', onScroll);
-}, [displayedCount, groupedProducts.length]);
+}, [displayedCount, activeProducts.length]);
 
 // removed displayedCountRef - using functional updates instead
 
@@ -407,7 +420,7 @@ useEffect(() => {
     loadingIntervalRef.current = null;
   }
   setIsLoadingMore(false);
-}, [debouncedQuery, sortBy, quantityFilter, productTypeFilter, groupedProducts.length]);
+}, [debouncedQuery, sortBy, quantityFilter, productTypeFilter, activeProducts.length]);
 
   if (loading) {
     return (
@@ -502,7 +515,7 @@ useEffect(() => {
                   setQuantityFilter={setQuantityFilter}
                   productTypeFilter={productTypeFilter}
                   setProductTypeFilter={setProductTypeFilter}
-                  resultCount={groupedProducts.length}
+                  resultCount={activeProducts.length}
                 />
               </div>
             </div>
@@ -547,7 +560,7 @@ useEffect(() => {
 
           {/* Products Grid */}
           <div className="container mx-auto px-2 md:px-4 pb-8">
-            {groupedProducts.length > 0 ? (
+            {activeProducts.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 mb-8">
                   {displayedProducts.map((product, index) => {
@@ -555,6 +568,33 @@ useEffect(() => {
                     const isTopValueOfDay = topValueOfDayUrl === productUrl;
                     const isTop10 = top10Products.has(productUrl);
                     
+                    // Use ProductCardWithSizes when size variant tiles are enabled
+                    if (USE_SIZE_VARIANT_TILES && 'sizeVariants' in product) {
+                      return (
+                        <div 
+                          key={`${productUrl}-${index}`}
+                          className="staggered-fade-in"
+                          style={{ animationDelay: `${Math.max(0, (index - batchStartRef.current)) * 40}ms` }}
+                        >
+                          {(isTop10 || isTopValueOfDay) ? (
+                            <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
+                              <ProductCardWithSizes
+                                product={product as TitleGroupedProduct}
+                                isTopValue={isTop10 && !isTopValueOfDay}
+                                isTopValueOfDay={isTopValueOfDay}
+                              />
+                            </div>
+                          ) : (
+                            <ProductCardWithSizes
+                              product={product as TitleGroupedProduct}
+                              isTopValue={false}
+                            />
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    // Fallback to original ProductCard
                     return (
                       <div 
                         key={`${productUrl}-${index}`}
@@ -581,7 +621,7 @@ useEffect(() => {
                 </div>
 
                 {/* IntersectionObserver sentinel */}
-                {displayedCount < groupedProducts.length && (
+                {displayedCount < activeProducts.length && (
                   <div ref={sentinelRef} className="h-10 w-full opacity-0 pointer-events-none" aria-hidden="true" />
                 )}
 
@@ -594,11 +634,11 @@ useEffect(() => {
                 )}
 
                 {/* Load more message */}
-                {displayedCount < groupedProducts.length && !isLoadingMore && (
+                {displayedCount < activeProducts.length && !isLoadingMore && (
                   <div className="text-center py-8">
                     <p className="text-foreground/70 mb-2">Scroll down to load more products</p>
                     <p className="text-sm text-foreground/50">
-                      Showing {displayedCount} of {groupedProducts.length} products
+                      Showing {displayedCount} of {activeProducts.length} products
                     </p>
                   </div>
                 )}
@@ -613,7 +653,7 @@ useEffect(() => {
              {/* Footer with product count and stock status */}
              <div className="text-center text-sm text-foreground/60 space-y-1">
                <p>
-                 Showing {displayedProducts.length} of {groupedProducts.length} products ({products.length} variants total)
+                 Showing {displayedProducts.length} of {activeProducts.length} products ({products.length} variants total)
                </p>
                <p>
                  Stock levels and prices are updated regularly. Click any product to view current availability.
