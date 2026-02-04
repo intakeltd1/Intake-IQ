@@ -102,6 +102,20 @@ export interface GroupedProduct extends Product {
   variantCount: number;
 }
 
+// Enhanced interface for title-only grouping with servings/amount variants
+export interface SizeVariant {
+  sizeLabel: string; // e.g., "33 servings" or "1kg"
+  sizeValue: number; // numeric value for sorting (servings count or grams)
+  sizeType: 'servings' | 'amount'; // which field was used
+  flavourVariants: Product[]; // all flavours available in this size
+}
+
+export interface TitleGroupedProduct extends Product {
+  sizeVariants: SizeVariant[]; // all available sizes (servings/amounts)
+  allVariants: Product[]; // flat list of all product variants
+  totalVariantCount: number;
+}
+
 // Group products by exact title + amount + servings (size), selecting best value as default
 // This ensures each package size with specific serving count gets its own tile, with flavour variants in the dropdown
 export const groupProductsByTitle = (products: Product[], benchmarks?: DatasetBenchmarks | null, scoreRange?: ScoreRange | null): GroupedProduct[] => {
@@ -156,6 +170,122 @@ export const groupProductsByTitle = (products: Product[], benchmarks?: DatasetBe
   
   return grouped;
 };
+
+// NEW: Group products by TITLE ONLY - creates size variants (servings or amount) within each tile
+// Priority: Use SERVINGS if available, fallback to AMOUNT
+export const groupProductsByTitleOnly = (
+  products: Product[], 
+  benchmarks?: DatasetBenchmarks | null, 
+  scoreRange?: ScoreRange | null
+): TitleGroupedProduct[] => {
+  // Step 1: Group all products by normalized title
+  const titleGroups = new Map<string, Product[]>();
+  
+  products.forEach(product => {
+    const title = (product.TITLE || '').toLowerCase().trim();
+    if (!title) return;
+    
+    if (!titleGroups.has(title)) {
+      titleGroups.set(title, []);
+    }
+    titleGroups.get(title)!.push(product);
+  });
+  
+  const result: TitleGroupedProduct[] = [];
+  
+  titleGroups.forEach((allVariants, title) => {
+    // Step 2: Within each title, group by size (servings preferred, amount fallback)
+    const sizeGroups = new Map<string, { sizeLabel: string; sizeValue: number; sizeType: 'servings' | 'amount'; products: Product[] }>();
+    
+    allVariants.forEach(product => {
+      // Try SERVINGS first (preferred)
+      const servingsRaw = String(product.SERVINGS || '').trim();
+      const servingsMatch = servingsRaw.match(/(\d+)/);
+      
+      let sizeKey: string;
+      let sizeLabel: string;
+      let sizeValue: number;
+      let sizeType: 'servings' | 'amount';
+      
+      if (servingsMatch && isValidServings(product.SERVINGS)) {
+        // Use servings
+        sizeValue = parseInt(servingsMatch[1], 10);
+        sizeLabel = `${sizeValue} servings`;
+        sizeKey = `servings-${sizeValue}`;
+        sizeType = 'servings';
+      } else {
+        // Fallback to amount
+        const grams = parseGrams(product.AMOUNT);
+        if (grams !== null) {
+          sizeValue = grams;
+          sizeLabel = formatAmount(grams);
+          sizeKey = `amount-${grams}`;
+          sizeType = 'amount';
+        } else {
+          // No size info available - use "unknown"
+          sizeValue = 0;
+          sizeLabel = 'Standard';
+          sizeKey = 'unknown';
+          sizeType = 'amount';
+        }
+      }
+      
+      if (!sizeGroups.has(sizeKey)) {
+        sizeGroups.set(sizeKey, { sizeLabel, sizeValue, sizeType, products: [] });
+      }
+      sizeGroups.get(sizeKey)!.products.push(product);
+    });
+    
+    // Step 3: Convert to SizeVariant array, sorted by size value
+    const sizeVariants: SizeVariant[] = Array.from(sizeGroups.values())
+      .map(group => {
+        // Sort flavour variants: in-stock first, then by value rating
+        const sortedFlavours = [...group.products].sort((a, b) => {
+          const aOutOfStock = isProductOutOfStock(a);
+          const bOutOfStock = isProductOutOfStock(b);
+          
+          if (!aOutOfStock && bOutOfStock) return -1;
+          if (aOutOfStock && !bOutOfStock) return 1;
+          
+          const ratingA = calculateIntakeValueRating(a, benchmarks || undefined, scoreRange || undefined) || 0;
+          const ratingB = calculateIntakeValueRating(b, benchmarks || undefined, scoreRange || undefined) || 0;
+          return ratingB - ratingA;
+        });
+        
+        return {
+          sizeLabel: group.sizeLabel,
+          sizeValue: group.sizeValue,
+          sizeType: group.sizeType,
+          flavourVariants: sortedFlavours
+        };
+      })
+      .sort((a, b) => a.sizeValue - b.sizeValue); // Sort sizes ascending
+    
+    // Step 4: Pick the best default size (first in-stock size with best value)
+    let defaultSizeIndex = 0;
+    for (let i = 0; i < sizeVariants.length; i++) {
+      const hasInStock = sizeVariants[i].flavourVariants.some(p => !isProductOutOfStock(p));
+      if (hasInStock) {
+        defaultSizeIndex = i;
+        break;
+      }
+    }
+    
+    const defaultSize = sizeVariants[defaultSizeIndex];
+    const defaultProduct = defaultSize?.flavourVariants[0];
+    
+    if (defaultProduct) {
+      result.push({
+        ...defaultProduct,
+        sizeVariants,
+        allVariants,
+        totalVariantCount: allVariants.length
+      });
+    }
+  });
+  
+  return result;
+}
 
 // Parse amount string to grams, handling various formats: "500g", "1.2kg", "500G", "1KG", "500 g", "1.2 kg"
 export const parseGrams = (amount?: string): number | null => {
