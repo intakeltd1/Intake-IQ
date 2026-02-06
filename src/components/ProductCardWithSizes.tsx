@@ -517,7 +517,8 @@ export function ProductCardWithSizes({ product, isTopValue, isFeatured, isPopula
                 {safeDisplayValue(currentProduct.PRICE, "Price N/A")}
               </span>
             </div>
-            {getServingsOrAmountDisplay(currentProduct) && (
+            {/* Hide servings badge when size buttons already show servings info */}
+            {sizeVariants.length <= 1 && getServingsOrAmountDisplay(currentProduct) && (
               <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1.5 py-0.5 font-medium">
                 {getServingsOrAmountDisplay(currentProduct)}
               </Badge>
