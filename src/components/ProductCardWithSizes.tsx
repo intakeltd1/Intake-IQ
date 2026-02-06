@@ -416,8 +416,8 @@ export function ProductCardWithSizes({ product, isTopValue, isFeatured, isPopula
             </CardTitle>
           )}
 
-          {/* SIZE VARIANT BUTTONS - New Feature */}
-          {sizeVariants.length > 1 && (
+          {/* SIZE VARIANT BUTTONS or SINGLE SIZE BADGE */}
+          {sizeVariants.length > 1 ? (
             <div 
               className="flex flex-wrap gap-1 py-1"
               onClick={(e) => e.stopPropagation()}
@@ -451,6 +451,15 @@ export function ProductCardWithSizes({ product, isTopValue, isFeatured, isPopula
                 );
               })}
             </div>
+          ) : (
+            /* Single variant - show badge in same location for consistency */
+            getServingsOrAmountDisplay(currentProduct) && (
+              <div className="flex flex-wrap gap-1 py-1">
+                <Badge variant="secondary" className="text-[9px] sm:text-[10px] px-2 py-0.5 font-medium">
+                  {getServingsOrAmountDisplay(currentProduct)}
+                </Badge>
+              </div>
+            )
           )}
 
           {/* Flavour Dropdown */}
@@ -505,7 +514,7 @@ export function ProductCardWithSizes({ product, isTopValue, isFeatured, isPopula
             )}
           </div>
 
-          {/* Price and Info Row */}
+          {/* Price Row */}
           <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/20">
             <div className="flex flex-col">
               {currentProduct.RRP && currentProduct.RRP !== currentProduct.PRICE && (
@@ -517,12 +526,6 @@ export function ProductCardWithSizes({ product, isTopValue, isFeatured, isPopula
                 {safeDisplayValue(currentProduct.PRICE, "Price N/A")}
               </span>
             </div>
-            {/* Hide servings badge when size buttons already show servings info */}
-            {sizeVariants.length <= 1 && getServingsOrAmountDisplay(currentProduct) && (
-              <Badge variant="secondary" className="text-[8px] sm:text-[9px] px-1.5 py-0.5 font-medium">
-                {getServingsOrAmountDisplay(currentProduct)}
-              </Badge>
-            )}
           </div>
 
           {/* Protein */}
