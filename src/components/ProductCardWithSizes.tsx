@@ -138,31 +138,81 @@ export function ProductCardWithSizes({ product, isTopValue, isFeatured, isPopula
   const [addAnimation, setAddAnimation] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { benchmarks, scoreRange, rankings } = useValueBenchmarks();
   
   // Size and flavour selection state
   const sizeVariants = product.sizeVariants || [];
   
-  // Find initial size index (first with in-stock products)
-  const getInitialSizeIndex = () => {
-    for (let i = 0; i < sizeVariants.length; i++) {
-      if (sizeVariants[i].flavourVariants.some(p => !isOutOfStock(p))) {
-        return i;
-      }
-    }
-    return 0;
+  // Helper to calculate intake value for a product (for sorting purposes)
+  const getProductIntakeValue = (p: Product): number => {
+    const rating = calculateIntakeValueRating(p, benchmarks || undefined, scoreRange || undefined, rankings || undefined);
+    return rating || 0;
   };
   
-  const [selectedSizeIndex, setSelectedSizeIndex] = useState(getInitialSizeIndex());
+  // Find best in-stock flavour within a size variant (highest intake value, in-stock)
+  const getBestFlavourIndex = (flavours: Product[]): number => {
+    // First, find all in-stock flavours
+    const inStockIndices = flavours
+      .map((p, idx) => ({ product: p, idx, inStock: !isOutOfStock(p) }))
+      .filter(item => item.inStock);
+    
+    if (inStockIndices.length === 0) {
+      // No in-stock items, return first one (will show as out of stock)
+      return 0;
+    }
+    
+    // Among in-stock, find the one with highest intake value
+    let bestIdx = inStockIndices[0].idx;
+    let bestValue = getProductIntakeValue(inStockIndices[0].product);
+    
+    for (const item of inStockIndices) {
+      const value = getProductIntakeValue(item.product);
+      if (value > bestValue) {
+        bestValue = value;
+        bestIdx = item.idx;
+      }
+    }
+    
+    return bestIdx;
+  };
+  
+  // Find initial size index: best value among in-stock products across all sizes
+  const getInitialSizeIndex = (): number => {
+    let bestSizeIdx = 0;
+    let bestOverallValue = -1;
+    let hasAnyInStock = false;
+    
+    for (let i = 0; i < sizeVariants.length; i++) {
+      const flavours = sizeVariants[i].flavourVariants;
+      const inStockFlavours = flavours.filter(p => !isOutOfStock(p));
+      
+      if (inStockFlavours.length > 0) {
+        hasAnyInStock = true;
+        // Find best value in this size
+        for (const p of inStockFlavours) {
+          const value = getProductIntakeValue(p);
+          if (value > bestOverallValue) {
+            bestOverallValue = value;
+            bestSizeIdx = i;
+          }
+        }
+      }
+    }
+    
+    // If no in-stock items anywhere, just return 0
+    if (!hasAnyInStock) return 0;
+    
+    return bestSizeIdx;
+  };
+  
+  const initialSizeIndex = useMemo(() => getInitialSizeIndex(), [sizeVariants, benchmarks, scoreRange, rankings]);
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(initialSizeIndex);
   const currentSize = sizeVariants[selectedSizeIndex] || sizeVariants[0];
   const flavourVariants = currentSize?.flavourVariants || [];
   
-  // Find initial flavour index (first in-stock)
-  const getInitialFlavourIndex = (flavours: Product[]) => {
-    const inStockIndex = flavours.findIndex(p => !isOutOfStock(p));
-    return inStockIndex !== -1 ? inStockIndex : 0;
-  };
-  
-  const [selectedFlavourIndex, setSelectedFlavourIndex] = useState(getInitialFlavourIndex(flavourVariants));
+  // Get best flavour index for current size
+  const initialFlavourIndex = useMemo(() => getBestFlavourIndex(flavourVariants), [flavourVariants, benchmarks, scoreRange, rankings]);
+  const [selectedFlavourIndex, setSelectedFlavourIndex] = useState(initialFlavourIndex);
   
   // Current product based on selections
   const currentProduct = flavourVariants[selectedFlavourIndex] || flavourVariants[0] || product;
@@ -172,7 +222,6 @@ export function ProductCardWithSizes({ product, isTopValue, isFeatured, isPopula
   
   const outOfStock = isOutOfStock(currentProduct);
   const { addToComparison, isInComparison, comparisonProducts } = useComparison();
-  const { benchmarks, scoreRange, rankings } = useValueBenchmarks();
   const valueRating = calculateIntakeValueRating(currentProduct, benchmarks || undefined, scoreRange || undefined, rankings || undefined);
   const priceTrend = usePriceTrend(productUrl);
   
@@ -260,9 +309,9 @@ export function ProductCardWithSizes({ product, isTopValue, isFeatured, isPopula
   const handleSizeChange = (index: number) => {
     setSelectedSizeIndex(index);
     setImageError(false);
-    // Reset flavour to first in-stock for new size
+    // Reset flavour to best value in-stock for new size
     const newFlavours = sizeVariants[index]?.flavourVariants || [];
-    setSelectedFlavourIndex(getInitialFlavourIndex(newFlavours));
+    setSelectedFlavourIndex(getBestFlavourIndex(newFlavours));
   };
 
   // Handle flavour selection
