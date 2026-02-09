@@ -158,7 +158,7 @@ const LandingPage = () => {
                 className="bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl hover:border-primary/30 transition-all"
               >
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-br from-primary to-purple-600 mb-1 sm:mb-2">
-                  100+
+                  2000+
                 </div>
                 <div className="text-xs sm:text-sm font-medium text-muted-foreground">Products Tracked</div>
               </motion.div>
@@ -169,9 +169,9 @@ const LandingPage = () => {
                 className="bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl hover:border-primary/30 transition-all"
               >
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-br from-green-500 to-emerald-600 mb-1 sm:mb-2">
-                  £40+
+                  £10+
                 </div>
-                <div className="text-xs sm:text-sm font-medium text-muted-foreground">Avg. Saved/Year</div>
+                <div className="text-xs sm:text-sm font-medium text-muted-foreground">Avg. Saved/Purchase</div>
               </motion.div>
               
               <motion.div
@@ -180,7 +180,7 @@ const LandingPage = () => {
                 className="bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl hover:border-primary/30 transition-all"
               >
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-br from-blue-500 to-cyan-600 mb-1 sm:mb-2">
-                  24/7
+                  Daily
                 </div>
                 <div className="text-xs sm:text-sm font-medium text-muted-foreground">Price Updates</div>
               </motion.div>
