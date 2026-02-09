@@ -117,7 +117,7 @@ const LandingPage = () => {
               
               {/* Subheadline */}
               <p className="text-muted-foreground text-base sm:text-lg lg:text-xl max-w-3xl mx-auto mb-6">
-                Compare 100+ products by real nutritional value, not just price.
+                Compare thousands of products by real nutritional value, not just price.
               </p>
               <p className="text-foreground font-semibold text-lg sm:text-xl lg:text-2xl max-w-2xl mx-auto">
                 Save money. Get better results. Make smarter choices.
