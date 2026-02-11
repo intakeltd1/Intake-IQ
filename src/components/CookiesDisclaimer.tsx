@@ -7,20 +7,21 @@ export function CookiesDisclaimer() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const cookiesAccepted = localStorage.getItem("cookies-accepted");
+    const cookiesAccepted = localStorage.getItem('cookies-accepted');
     if (!cookiesAccepted) {
       setIsVisible(true);
     }
   }, []);
 
   const acceptCookies = () => {
-    localStorage.setItem("cookies-accepted", "true");
+    localStorage.setItem('cookies-accepted', 'true');
     setIsVisible(false);
   };
 
   const rejectCookies = () => {
-    localStorage.setItem("cookies-accepted", "false");
-    localStorage.removeItem("product-clicks");
+    localStorage.setItem('cookies-accepted', 'false');
+    // Clear any existing tracking data
+    localStorage.removeItem('product-clicks');
     setIsVisible(false);
   };
 
@@ -35,29 +36,23 @@ export function CookiesDisclaimer() {
       <Card className="mx-auto max-w-4xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-lg">
         <div className="flex items-start gap-4 p-4">
           <Cookie className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-
           <div className="flex-1 space-y-3">
             <div>
-              <h3 className="font-semibold text-foreground mb-2">
-                Cookie Notice
-              </h3>
+              <h3 className="font-semibold text-foreground mb-2">Cookie Notice</h3>
               <p className="text-sm text-muted-foreground">
-                We use essential cookies to remember your product clicks for
-                popularity rankings. We do not use any third-party tracking
-                cookies or analytics. Your privacy is important to us.
+                We use essential cookies to remember your product clicks for popularity rankings. 
+                We do not use any third-party tracking cookies or analytics. Your privacy is important to us.
               </p>
             </div>
-
             <div className="flex flex-col sm:flex-row gap-2">
-              <Button
+              <Button 
                 onClick={acceptCookies}
                 variant="outline"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 Accept Cookies
               </Button>
-
-              <Button
+              <Button 
                 onClick={rejectCookies}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
@@ -65,7 +60,6 @@ export function CookiesDisclaimer() {
               </Button>
             </div>
           </div>
-
           <Button
             onClick={closeBanner}
             variant="ghost"
