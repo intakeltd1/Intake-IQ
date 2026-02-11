@@ -13,7 +13,6 @@ export function StickyTimer({ lastUpdatedISO }: { lastUpdatedISO?: string }) {
       const base = lastUpdatedISO ? new Date(lastUpdatedISO).getTime() : Date.now();
       const now = Date.now();
       const diff = Math.max(0, now - base);
-
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -32,10 +31,16 @@ export function StickyTimer({ lastUpdatedISO }: { lastUpdatedISO?: string }) {
 
   return (
     <div className="sticky top-0 z-50 bg-background/70 backdrop-blur-md border-b border-white/20">
-      <div className="container mx-auto px-4 py-1">
-        <div className="flex items-center justify-center space-x-2 text-foreground">
-          <Clock className="h-4 w-4" />
-          <span className="font-medium text-sm">Prices updated {label}</span>
+      <div className="container mx-auto px-4 py-2">
+        <div className="flex flex-col items-center justify-center space-y-1">
+          <div className="flex items-center space-x-2 text-foreground">
+            <Clock className="h-4 w-4" />
+            <span className="font-medium text-sm">Prices updated {label}</span>
+            <Info className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center leading-tight">
+            Price info, images and nutritional values are all owned by the originators and original companies, hyperlinked.
+          </p>
         </div>
       </div>
     </div>
