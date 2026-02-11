@@ -16,13 +16,13 @@ export interface BlogPost {
 export const blogPosts: BlogPost[] = [
   
   {
-  id: 'url-friendly-slug-here',
-  title: 'Your Blog Title Here',
-  date: '2026-02-11', // Format: YYYY-MM-DD
+  id: 'Skill Development is Critical.',
+  title: 'Don't let your skillset stagnate.',
+  date: '2026-02-11', 
   author: '@joe.intake',
-  category: 'Discussion', // Choose: Design, Mindfulness, Finance, Health, Travel, Media, Discussion, or Nutrition
+  category: 'Discussion',
   summary: 'Understanding the importance of continuous personal & skill development.',
-  readTime: '3 min', // Estimate reading time
+  readTime: '3 min',
   content: `I commit a lot of time towards developing new skills per week. The reson for this is to ensure that I am well versed in any new fields coming into play in the coming months & years. Most of the new devlopments in technology are boring and full of jargon. This makes them hard to approach. The use of tools like Claude is intrinsic to breaking down barriers of language efficiently.
   
   For instance, last week I developed my knowlege within the field of aritificial image generation. I spent hours trqawling through a subreddit filled with enthusiasts on the topic, some were even experts in it. Some of their opinions went as far as to provide insight into the future of video generation, and some of them had created entire short films using realistic image generation methods.
