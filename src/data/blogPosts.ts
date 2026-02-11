@@ -42,7 +42,7 @@ export const blogPosts: BlogPost[] = [
   Always strive to learn and progress skills when you have the time. Time is something  you invest into skills and memories, a currency. Use it wisely.
   
   Always Fail Fast.`
-  }
+  },  
   
   {
     id: 'evolving-approaches',
