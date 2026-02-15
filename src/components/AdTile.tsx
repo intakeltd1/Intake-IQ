@@ -56,7 +56,7 @@ export function AdTile({ adSlot, adFormat = 'fluid', className = '' }: AdTilePro
               height: '100%',
               minHeight: '250px'
             }}
-            data-ad-client="ca-pub-XXXXXXXXXX" // Replace with your AdSense publisher ID
+            data-ad-client="ca-pub-intakeapp26-21" // Replace with your AdSense publisher ID
             data-ad-slot={adSlot}
             data-ad-format={adFormat}
             data-full-width-responsive="true"
