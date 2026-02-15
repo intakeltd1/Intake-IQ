@@ -10,6 +10,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { ProductCardWithSizes } from "@/components/ProductCardWithSizes";
 import { CookiesDisclaimer } from "@/components/CookiesDisclaimer";
 import { SignUpPromptWrapper } from "@/components/SignUpPromptWrapper";
+import { AmazonAdTile } from "@/components/AmazonAdTile";
 
 import { ComparisonWidget } from "@/components/ComparisonWidget";
 import { ComparisonModal } from "@/components/ComparisonModal";
@@ -564,60 +565,54 @@ useEffect(() => {
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 mb-8">
                   {displayedProducts.map((product, index) => {
-                    const productUrl = product.URL || product.LINK || '';
-                    const isTopValueOfDay = topValueOfDayUrl === productUrl;
-                    const isTop10 = top10Products.has(productUrl);
-                    
-                    // Use ProductCardWithSizes when size variant tiles are enabled
-                    if (USE_SIZE_VARIANT_TILES && 'sizeVariants' in product) {
-                      return (
-                        <div 
-                          key={`${productUrl}-${index}`}
-                          className="staggered-fade-in"
-                          style={{ animationDelay: `${Math.max(0, (index - batchStartRef.current)) * 40}ms` }}
-                        >
-                          {(isTop10 || isTopValueOfDay) ? (
-                            <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
-                              <ProductCardWithSizes
-                                product={product as TitleGroupedProduct}
-                                isTopValue={isTop10 && !isTopValueOfDay}
-                                isTopValueOfDay={isTopValueOfDay}
-                              />
-                            </div>
-                          ) : (
-                            <ProductCardWithSizes
-                              product={product as TitleGroupedProduct}
-                              isTopValue={false}
-                            />
-                          )}
-                        </div>
-                      );
-                    }
-                    
-                    // Fallback to original ProductCard
-                    return (
-                      <div 
-                        key={`${productUrl}-${index}`}
-                        className="staggered-fade-in"
-                        style={{ animationDelay: `${Math.max(0, (index - batchStartRef.current)) * 40}ms` }}
-                      >
-                        {(isTop10 || isTopValueOfDay) ? (
-                          <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
-                            <ProductCard
-                              product={product}
-                              isTopValue={isTop10 && !isTopValueOfDay}
-                              isTopValueOfDay={isTopValueOfDay}
-                            />
-                          </div>
-                        ) : (
-                          <ProductCard
-                            product={product}
-                            isTopValue={false}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
+  const productUrl = product.URL || product.LINK || '';
+  const isTopValueOfDay = topValueOfDayUrl === productUrl;
+  const isTop10 = top10Products.has(productUrl);
+  const showAd = (index + 1) % 12 === 0; // Ad every 12 tiles
+  
+  return (
+    <>
+      {/* Your existing product tile code - DON'T CHANGE THIS PART */}
+      {USE_SIZE_VARIANT_TILES && 'sizeVariants' in product ? (
+        <div key={`${productUrl}-${index}`} className="staggered-fade-in" 
+             style={{ animationDelay: `${Math.max(0, (index - batchStartRef.current)) * 40}ms` }}>
+          {(isTop10 || isTopValueOfDay) ? (
+            <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
+              <ProductCardWithSizes product={product as TitleGroupedProduct} 
+                isTopValue={isTop10 && !isTopValueOfDay} isTopValueOfDay={isTopValueOfDay} />
+            </div>
+          ) : (
+            <ProductCardWithSizes product={product as TitleGroupedProduct} isTopValue={false} />
+          )}
+        </div>
+      ) : (
+        <div key={`${productUrl}-${index}`} className="staggered-fade-in"
+             style={{ animationDelay: `${Math.max(0, (index - batchStartRef.current)) * 40}ms` }}>
+          {(isTop10 || isTopValueOfDay) ? (
+            <div className={isTopValueOfDay ? "golden-circle-border" : "white-circle-border"}>
+              <ProductCard product={product} isTopValue={isTop10 && !isTopValueOfDay} 
+                isTopValueOfDay={isTopValueOfDay} />
+            </div>
+          ) : (
+            <ProductCard product={product} isTopValue={false} />
+          )}
+        </div>
+      )}
+      
+      {/* NEW: Add this ad tile */}
+      {showAd && index < displayedProducts.length - 1 && (
+        <div key={`ad-${index}`} className="staggered-fade-in"
+             style={{ animationDelay: `${Math.max(0, (index - batchStartRef.current)) * 40}ms` }}>
+          <AmazonAdTile 
+            trackingId="intakeapp-21"
+            asins={['B00QQA0Z3W', 'B002DYJ0SG', 'B08C7GD1DJ']}
+            region="uk"
+          />
+        </div>
+      )}
+    </>
+  );
+})}
                 </div>
 
                 {/* IntersectionObserver sentinel */}
@@ -655,6 +650,9 @@ useEffect(() => {
                <p>
                  Showing {displayedProducts.length} of {activeProducts.length} products ({products.length} variants total)
                </p>
+               <p className="text-xs text-muted-foreground mt-4">
+                As an Amazon Associate, intk.app earns from qualifying purchases.
+              </p>
                <p>
                  Stock levels and prices are updated regularly. Click any product to view current availability.
                </p>
